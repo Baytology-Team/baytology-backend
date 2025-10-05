@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <OutputType>Library</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Baytology.Application\Baytology.Application.csproj" />
+    <ProjectReference Include="..\Baytology.Contracts\Baytology.Contracts.csproj" />
+    <ProjectReference Include="..\Baytology.Infrastructure\Baytology.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>

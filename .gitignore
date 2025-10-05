@@ -1,0 +1,87 @@
+# =========================
+# .NET Backend
+# =========================
+bin/
+obj/
+artifacts/
+logs/
+runtime-logs/
+temp/
+
+**/bin/
+**/obj/
+**/artifacts/
+**/logs/
+**/temp/
+
+.vs/
+.vscode/
+*.user
+*.suo
+*.cache
+
+TestResults/
+coverage/
+
+# =========================
+# Python / AI
+# =========================
+__pycache__/
+**/__pycache__/
+*.pyc
+.venv/
+**/venv/
+**/.venv/
+*.egg-info/
+dist/
+build/
+
+# Environment files contain secrets
+.env
+.env.*
+!.env.example
+**/.env
+*.pfx
+*.pem
+*.key
+
+# =========================
+# Large / Generated files
+# =========================
+*.csv
+*.log
+*.err.log
+*.out.log
+*.zip
+*.faiss
+
+faiss_index.bin
+Search_By_Image/images/
+Search_By_Image/data/
+
+# =========================
+# Temp / Build artifacts
+# =========================
+_baytology_push/
+_publish_repo/
+client/
+deliverables/
+build_latest.txt
+build_output.txt
+frontend/dist/
+frontend/dist-temp/
+frontend/.angular/cache/
+frontend/node_modules/
+frontend/scratch/
+frontend/temp_*.ts
+temp_*.wav
+test_*.json
+*.tmp
+
+# =========================
+# OS / IDE
+# =========================
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
