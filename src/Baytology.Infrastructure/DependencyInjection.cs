@@ -4,6 +4,7 @@ using Baytology.Application.Common.Interfaces;
 using Baytology.Infrastructure.Data;
 using Baytology.Infrastructure.Identity;
 using Baytology.Infrastructure.Interceptors;
+using Baytology.Infrastructure.Notifications;
 using Baytology.Infrastructure.Settings;
 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -26,7 +27,8 @@ public static class DependencyInjection
     {
         services
             .AddDatabaseServices(configuration, environment)
-            .AddIdentityServices(configuration);
+            .AddIdentityServices(configuration)
+            .AddEmailServices(configuration, environment);
 
         return services;
     }
@@ -124,6 +126,36 @@ public static class DependencyInjection
 
         services.AddScoped<IIdentityService, IdentityService>();
         services.AddScoped<ITokenProvider, TokenProvider>();
+
+        return services;
+    }
+
+    private static IServiceCollection AddEmailServices(
+        this IServiceCollection services,
+        IConfiguration configuration,
+        IHostEnvironment environment)
+    {
+        var emailOptions = services.AddOptions<EmailSettings>()
+            .Bind(configuration.GetSection("Email"))
+            .Validate(settings => !string.IsNullOrWhiteSpace(settings.FromAddress), "Email:FromAddress is required.")
+            .Validate(
+                settings => settings.DeliveryMode != EmailDeliveryMode.Smtp
+                    || !string.IsNullOrWhiteSpace(settings.SmtpHost),
+                "Email:SmtpHost is required when DeliveryMode is Smtp.")
+            .Validate(
+                settings => settings.DeliveryMode != EmailDeliveryMode.Smtp || settings.SmtpPort > 0,
+                "Email:SmtpPort must be greater than zero when DeliveryMode is Smtp.");
+
+        if (!environment.IsDevelopment() && !environment.IsEnvironment("Testing"))
+        {
+            emailOptions.Validate(
+                settings => settings.DeliveryMode == EmailDeliveryMode.Smtp,
+                "Email:DeliveryMode must be Smtp outside Development.");
+        }
+
+        emailOptions.ValidateOnStart();
+
+        services.AddScoped<IEmailSender, ConfiguredEmailSender>();
 
         return services;
     }
