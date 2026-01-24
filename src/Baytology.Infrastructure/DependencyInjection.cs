@@ -1,6 +1,7 @@
 using System.Text;
 
 using Baytology.Application.Common.Interfaces;
+using Baytology.Infrastructure.Caching;
 using Baytology.Infrastructure.Data;
 using Baytology.Infrastructure.Identity;
 using Baytology.Infrastructure.Interceptors;
@@ -26,9 +27,39 @@ public static class DependencyInjection
         IHostEnvironment environment)
     {
         services
+            .AddStartupInitializationServices(configuration)
+            .AddCachingServices()
             .AddDatabaseServices(configuration, environment)
             .AddIdentityServices(configuration)
             .AddEmailServices(configuration, environment);
+
+        return services;
+    }
+
+    private static IServiceCollection AddStartupInitializationServices(
+        this IServiceCollection services,
+        IConfiguration configuration)
+    {
+        services.AddOptions<StartupInitializationSettings>()
+            .Bind(configuration.GetSection("StartupInitialization"));
+
+        return services;
+    }
+
+    private static IServiceCollection AddCachingServices(this IServiceCollection services)
+    {
+        services.AddHybridCache(options =>
+        {
+            options.MaximumPayloadBytes = 1024 * 1024;
+            options.MaximumKeyLength = 1024;
+            options.DefaultEntryOptions = new()
+            {
+                Expiration = TimeSpan.FromMinutes(5),
+                LocalCacheExpiration = TimeSpan.FromMinutes(2)
+            };
+        });
+
+        services.AddScoped<IQueryCache, HybridQueryCache>();
 
         return services;
     }
