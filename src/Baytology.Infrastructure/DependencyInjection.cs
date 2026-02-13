@@ -157,6 +157,7 @@ public static class DependencyInjection
 
         services.AddScoped<IIdentityService, IdentityService>();
         services.AddScoped<ITokenProvider, TokenProvider>();
+        services.AddScoped<IExternalLoginTokenValidator, DisabledExternalLoginTokenValidator>();
 
         return services;
     }
