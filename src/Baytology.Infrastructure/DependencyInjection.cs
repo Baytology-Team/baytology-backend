@@ -31,7 +31,8 @@ public static class DependencyInjection
             .AddCachingServices()
             .AddDatabaseServices(configuration, environment)
             .AddIdentityServices(configuration)
-            .AddEmailServices(configuration, environment);
+            .AddEmailServices(configuration, environment)
+            .AddPaymentServices(configuration);
 
         return services;
     }
@@ -246,5 +247,19 @@ public static class DependencyInjection
         }
 
         return normalized;
+    }
+
+    private static IServiceCollection AddPaymentServices(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddOptions<PaymobSettings>()
+            .Bind(configuration.GetSection("Paymob"))
+            .Validate(settings => !string.IsNullOrWhiteSpace(settings.ApiKey), "Paymob:ApiKey is required.")
+            .Validate(settings => !string.IsNullOrWhiteSpace(settings.IntegrationId.ToString()), "Paymob:IntegrationId is required.")
+            .ValidateOnStart();
+
+        services.AddScoped<IPaymentGateway, Baytology.Infrastructure.Payments.PaymobGateway>();
+        services.AddHttpClient<Baytology.Infrastructure.Payments.PaymobGateway>();
+
+        return services;
     }
 }

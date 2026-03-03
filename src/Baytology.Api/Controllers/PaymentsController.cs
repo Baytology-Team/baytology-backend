@@ -21,11 +21,13 @@ using Microsoft.Extensions.Options;
 namespace Baytology.Api.Controllers;
 
 [ApiVersion("1")]
+
 public class PaymentsController(
     ISender sender,
+    IOptions<PaymobSettings> paymobOptions,
     IHostEnvironment hostEnvironment) : ApiController
 {
-    // Paymob settings will be added in Phase 6
+    private readonly PaymobSettings _paymobSettings = paymobOptions.Value;
 
     [HttpGet("dev/checkout")]
     [ApiExplorerSettings(IgnoreApi = true)]
@@ -145,8 +147,7 @@ public class PaymentsController(
     [MapToApiVersion("1")]
     public async Task<IActionResult> Webhook(CancellationToken ct)
     {
-        // Webhook security configured in Phase 6
-        if (false)
+        if (string.IsNullOrWhiteSpace(_paymobSettings.WebhookToken))
         {
             return Problem(
                 title: "Webhook security is not configured",
@@ -267,7 +268,18 @@ public class PaymentsController(
 
     private bool IsAuthorizedWebhook(HttpRequest request)
     {
-        return false; // Webhook security not configured yet
+        var headerName = string.IsNullOrWhiteSpace(_paymobSettings.WebhookTokenHeaderName)
+            ? "X-Webhook-Token"
+            : _paymobSettings.WebhookTokenHeaderName;
+
+        var queryParameterName = string.IsNullOrWhiteSpace(_paymobSettings.WebhookTokenQueryParameterName)
+            ? "token"
+            : _paymobSettings.WebhookTokenQueryParameterName;
+
+        var providedToken = request.Headers[headerName].FirstOrDefault()
+            ?? request.Query[queryParameterName].FirstOrDefault();
+
+        return FixedTimeEquals(providedToken, _paymobSettings.WebhookToken);
     }
 
     private async Task<string> ReadRequestBodyAsync(CancellationToken ct)
@@ -292,6 +304,6 @@ public class PaymentsController(
 
     private bool IsLocalPaymentSimulationEnabled()
     {
-        return hostEnvironment.IsDevelopment();
+        return hostEnvironment.IsDevelopment() && _paymobSettings.EnableLocalSimulation;
     }
 }
