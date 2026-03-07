@@ -32,7 +32,8 @@ public static class DependencyInjection
             .AddDatabaseServices(configuration, environment)
             .AddIdentityServices(configuration)
             .AddEmailServices(configuration, environment)
-            .AddPaymentServices(configuration);
+            .AddPaymentServices(configuration)
+            .AddMessagingServices(configuration);
 
         return services;
     }
@@ -259,6 +260,18 @@ public static class DependencyInjection
 
         services.AddScoped<IPaymentGateway, Baytology.Infrastructure.Payments.PaymobGateway>();
         services.AddHttpClient<Baytology.Infrastructure.Payments.PaymobGateway>();
+
+        return services;
+    }
+
+    private static IServiceCollection AddMessagingServices(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddOptions<RabbitMqSettings>()
+            .Bind(configuration.GetSection("RabbitMQ"))
+            .Validate(settings => !string.IsNullOrWhiteSpace(settings.HostName), "RabbitMQ:HostName is required.")
+            .ValidateOnStart();
+
+        services.AddSingleton<IMessagePublisher, Baytology.Infrastructure.Messaging.RabbitMqPublisher>();
 
         return services;
     }
