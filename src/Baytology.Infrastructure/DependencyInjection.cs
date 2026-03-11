@@ -33,7 +33,8 @@ public static class DependencyInjection
             .AddIdentityServices(configuration)
             .AddEmailServices(configuration, environment)
             .AddPaymentServices(configuration)
-            .AddMessagingServices(configuration);
+            .AddMessagingServices(configuration)
+            .AddRealTimeServices();
 
         return services;
     }
@@ -272,6 +273,15 @@ public static class DependencyInjection
             .ValidateOnStart();
 
         services.AddSingleton<IMessagePublisher, Baytology.Infrastructure.Messaging.RabbitMqPublisher>();
+
+        return services;
+    }
+
+    private static IServiceCollection AddRealTimeServices(this IServiceCollection services)
+    {
+        services.AddSignalR();
+        services.AddScoped<IConversationRealtimeService, Baytology.Infrastructure.RealTime.ConversationRealtimeService>();
+        services.AddScoped<INotificationService, Baytology.Infrastructure.Notifications.NotificationService>();
 
         return services;
     }

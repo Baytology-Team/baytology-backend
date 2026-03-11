@@ -1,4 +1,5 @@
 using Baytology.Infrastructure.Data.Seeders;
+using Baytology.Infrastructure.RealTime;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +17,9 @@ await app.Services.InitialiseDatabaseAsync();
 app.UseCoreMiddlewares(builder.Configuration);
 
 app.MapControllers();
+
+app.MapHub<NotificationHub>("/hubs/notifications");
+app.MapHub<ChatHub>("/hubs/chat");
 
 app.Run();
 
