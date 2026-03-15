@@ -160,7 +160,8 @@ public static class DependencyInjection
 
         services.AddScoped<IIdentityService, IdentityService>();
         services.AddScoped<ITokenProvider, TokenProvider>();
-        services.AddScoped<IExternalLoginTokenValidator, DisabledExternalLoginTokenValidator>();
+        services.AddOptions<GoogleAuthSettings>().Bind(configuration.GetSection("GoogleAuthSettings"));
+        services.AddScoped<IExternalLoginTokenValidator, Baytology.Infrastructure.Identity.ExternalLoginTokenValidator>();
 
         return services;
     }
