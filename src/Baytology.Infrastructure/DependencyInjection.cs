@@ -1,4 +1,5 @@
 using System.Text;
+using Microsoft.Extensions.Http.Resilience;
 
 using Baytology.Application.Common.Interfaces;
 using Baytology.Infrastructure.Caching;
@@ -34,7 +35,9 @@ public static class DependencyInjection
             .AddEmailServices(configuration, environment)
             .AddPaymentServices(configuration)
             .AddMessagingServices(configuration)
-            .AddRealTimeServices();
+            .AddRealTimeServices()
+            .AddAiFallbackServices(configuration)
+            .AddExternalAiIntegrationServices(configuration, environment);
 
         return services;
     }
@@ -285,5 +288,125 @@ public static class DependencyInjection
         services.AddScoped<INotificationService, Baytology.Infrastructure.Notifications.NotificationService>();
 
         return services;
+    }
+
+    private static IServiceCollection AddAiFallbackServices(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddOptions<AiProcessingSettings>()
+            .Bind(configuration.GetSection("AiProcessing"));
+
+        services.AddScoped<Baytology.Application.Common.Interfaces.IAiDispatchPolicy, Baytology.Infrastructure.AI.RabbitMqAiDispatchPolicy>();
+        services.AddScoped<Baytology.Application.Common.Interfaces.IAiSearchFallbackService, Baytology.Infrastructure.AI.InternalAiSearchFallbackService>();
+        services.AddScoped<Baytology.Application.Common.Interfaces.IRecommendationFallbackService, Baytology.Infrastructure.AI.InternalRecommendationFallbackService>();
+
+        return services;
+    }
+
+    private static IServiceCollection AddExternalAiIntegrationServices(
+        this IServiceCollection services,
+        IConfiguration configuration,
+        IHostEnvironment environment)
+    {
+        services.AddOptions<ExternalAiServicesSettings>()
+            .Bind(configuration.GetSection("ExternalAiServices"));
+        var externalAiTimeout = TimeSpan.FromSeconds(Math.Max(1, configuration.GetValue<int>("ExternalAiServices:TimeoutSeconds")));
+
+        services.AddHttpClient<Baytology.Application.Common.Interfaces.IChatbotApiClient, Baytology.Infrastructure.AI.ChatbotApiClient>((sp, client) =>
+        {
+            var settings = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<ExternalAiServicesSettings>>().Value;
+            client.Timeout = TimeSpan.FromSeconds(Math.Max(1, settings.TimeoutSeconds));
+
+            if (Uri.TryCreate(settings.ChatbotBaseUrl, UriKind.Absolute, out var baseUri))
+                client.BaseAddress = baseUri;
+        })
+        .ConfigurePrimaryHttpMessageHandler(sp => CreateExternalAiHttpHandler(
+            environment,
+            sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<ExternalAiServicesSettings>>().Value))
+        .AddStandardResilienceHandler(options =>
+        {
+            options.AttemptTimeout.Timeout = externalAiTimeout;
+            options.TotalRequestTimeout.Timeout = externalAiTimeout;
+            options.CircuitBreaker.SamplingDuration = TimeSpan.FromSeconds(Math.Max(30, externalAiTimeout.TotalSeconds * 2));
+        });
+
+        services.AddHttpClient<Baytology.Application.Common.Interfaces.IRecommendationApiClient, Baytology.Infrastructure.AI.RecommendationApiClient>((sp, client) =>
+        {
+            var settings = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<ExternalAiServicesSettings>>().Value;
+            client.Timeout = TimeSpan.FromSeconds(Math.Max(1, settings.TimeoutSeconds));
+
+            if (Uri.TryCreate(settings.RecommendationBaseUrl, UriKind.Absolute, out var baseUri))
+                client.BaseAddress = baseUri;
+        })
+        .ConfigurePrimaryHttpMessageHandler(sp => CreateExternalAiHttpHandler(
+            environment,
+            sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<ExternalAiServicesSettings>>().Value))
+        .AddStandardResilienceHandler(options =>
+        {
+            options.AttemptTimeout.Timeout = externalAiTimeout;
+            options.TotalRequestTimeout.Timeout = externalAiTimeout;
+            options.CircuitBreaker.SamplingDuration = TimeSpan.FromSeconds(Math.Max(30, externalAiTimeout.TotalSeconds * 2));
+        });
+
+        services.AddHttpClient<Baytology.Application.Common.Interfaces.IVoiceRecognitionApiClient, Baytology.Infrastructure.AI.VoiceRecognitionApiClient>((sp, client) =>
+        {
+            var settings = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<ExternalAiServicesSettings>>().Value;
+            client.Timeout = TimeSpan.FromSeconds(Math.Max(1, settings.TimeoutSeconds));
+
+            var baseUrl = string.IsNullOrWhiteSpace(settings.VoiceRecognitionBaseUrl)
+                ? settings.ChatbotBaseUrl
+                : settings.VoiceRecognitionBaseUrl;
+
+            if (Uri.TryCreate(baseUrl, UriKind.Absolute, out var baseUri))
+                client.BaseAddress = baseUri;
+        })
+        .ConfigurePrimaryHttpMessageHandler(sp => CreateExternalAiHttpHandler(
+            environment,
+            sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<ExternalAiServicesSettings>>().Value))
+        .AddStandardResilienceHandler(options =>
+        {
+            options.Retry.ShouldHandle = static _ => ValueTask.FromResult(false);
+            options.AttemptTimeout.Timeout = externalAiTimeout;
+            options.TotalRequestTimeout.Timeout = externalAiTimeout;
+            options.CircuitBreaker.SamplingDuration = TimeSpan.FromSeconds(Math.Max(30, externalAiTimeout.TotalSeconds * 2));
+        });
+
+        services.AddHttpClient<Baytology.Application.Common.Interfaces.IImageSearchApiClient, Baytology.Infrastructure.AI.ImageSearchApiClient>((sp, client) =>
+        {
+            var settings = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<ExternalAiServicesSettings>>().Value;
+            client.Timeout = TimeSpan.FromSeconds(Math.Max(1, settings.TimeoutSeconds));
+
+            var baseUrl = string.IsNullOrWhiteSpace(settings.ImageSearchBaseUrl)
+                ? settings.ChatbotBaseUrl
+                : settings.ImageSearchBaseUrl;
+
+            if (Uri.TryCreate(baseUrl, UriKind.Absolute, out var baseUri))
+                client.BaseAddress = baseUri;
+        })
+        .ConfigurePrimaryHttpMessageHandler(sp => CreateExternalAiHttpHandler(
+            environment,
+            sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<ExternalAiServicesSettings>>().Value))
+        .AddStandardResilienceHandler(options =>
+        {
+            options.AttemptTimeout.Timeout = externalAiTimeout;
+            options.TotalRequestTimeout.Timeout = externalAiTimeout;
+            options.CircuitBreaker.SamplingDuration = TimeSpan.FromSeconds(Math.Max(30, externalAiTimeout.TotalSeconds * 2));
+        });
+
+        return services;
+    }
+
+    private static System.Net.Http.HttpClientHandler CreateExternalAiHttpHandler(
+        IHostEnvironment environment,
+        ExternalAiServicesSettings settings)
+    {
+        var handler = new System.Net.Http.HttpClientHandler();
+
+        if (environment.IsDevelopment() && settings.AllowUntrustedCertificates)
+        {
+            handler.ServerCertificateCustomValidationCallback =
+                System.Net.Http.HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+        }
+
+        return handler;
     }
 }
