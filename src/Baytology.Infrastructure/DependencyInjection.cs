@@ -37,7 +37,8 @@ public static class DependencyInjection
             .AddMessagingServices(configuration)
             .AddRealTimeServices()
             .AddAiFallbackServices(configuration)
-            .AddExternalAiIntegrationServices(configuration, environment);
+            .AddExternalAiIntegrationServices(configuration, environment)
+            .AddBackgroundJobs();
 
         return services;
     }
@@ -408,5 +409,12 @@ public static class DependencyInjection
         }
 
         return handler;
+    }
+
+    private static IServiceCollection AddBackgroundJobs(this IServiceCollection services)
+    {
+        services.AddHostedService<Baytology.Infrastructure.BackgroundJobs.OutboxProcessor>();
+        services.AddHostedService<Baytology.Infrastructure.BackgroundJobs.AiFallbackRecoveryProcessor>();
+        return services;
     }
 }
