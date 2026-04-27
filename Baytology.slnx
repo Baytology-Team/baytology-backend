@@ -7,6 +7,7 @@
     <Project Path="src/Baytology.Infrastructure/Baytology.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/Baytology.Api.Tests/Baytology.Api.Tests.csproj" />
     <Project Path="tests/Baytology.Application.Tests/Baytology.Application.Tests.csproj" />
     <Project Path="tests/Baytology.Domain.Tests/Baytology.Domain.Tests.csproj" />
   </Folder>
