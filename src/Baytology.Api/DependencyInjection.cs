@@ -4,11 +4,14 @@ using System.Threading.RateLimiting;
 using Asp.Versioning;
 
 using Baytology.Api.Infrastructure;
+using Baytology.Api.OpenApi.Transformers;
 using Baytology.Api.Services;
 using Baytology.Application.Common.Interfaces;
 using Baytology.Infrastructure.Settings;
 
 using Microsoft.AspNetCore.RateLimiting;
+
+using Serilog;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -20,31 +23,64 @@ public static class PresentationDependencyInjection
         IHostEnvironment environment)
     {
         services.Configure<AppSettings>(configuration.GetSection("AppSettings"));
+        services.Configure<AiWorkerSettings>(configuration.GetSection("AiWorker"));
 
         services.AddCustomProblemDetails()
-            .AddCustomApiVersioning()
-            .AddExceptionHandling()
-            .AddControllerWithJsonConfiguration()
-            .AddConfiguredCors(configuration, environment)
-            .AddIdentityInfrastructure()
-            .AddAppRateLimiting()
-            .AddAppOutputCaching();
+                .AddCustomApiVersioning()
+                .AddApiDocumentation()
+                .AddExceptionHandling()
+                .AddControllerWithJsonConfiguration()
+                .AddConfiguredCors(configuration, environment)
+                .AddIdentityInfrastructure()
+                .AddAppRateLimiting()
+                .AddAppOutputCaching()
+                .AddSignalR();
 
         return services;
     }
 
-    private static IServiceCollection AddCustomProblemDetails(this IServiceCollection services)
+    public static IServiceCollection AddAppOutputCaching(this IServiceCollection services)
     {
-        services.AddProblemDetails(options => options.CustomizeProblemDetails = context =>
+        services.AddOutputCache(options =>
         {
-            context.ProblemDetails.Instance = $"{context.HttpContext.Request.Method} {context.HttpContext.Request.Path}";
-            context.ProblemDetails.Extensions["requestId"] = context.HttpContext.TraceIdentifier;
+            options.SizeLimit = 100 * 1024 * 1024;
         });
 
         return services;
     }
 
-    private static IServiceCollection AddCustomApiVersioning(this IServiceCollection services)
+    public static IServiceCollection AddAppRateLimiting(this IServiceCollection services)
+    {
+        services.AddRateLimiter(options =>
+        {
+            options.AddSlidingWindowLimiter("SlidingWindow", limiterOptions =>
+            {
+                limiterOptions.PermitLimit = 100;
+                limiterOptions.Window = TimeSpan.FromMinutes(1);
+                limiterOptions.SegmentsPerWindow = 6;
+                limiterOptions.QueueLimit = 10;
+                limiterOptions.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+                limiterOptions.AutoReplenishment = true;
+            });
+
+            options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+        });
+
+        return services;
+    }
+
+    public static IServiceCollection AddCustomProblemDetails(this IServiceCollection services)
+    {
+        services.AddProblemDetails(options => options.CustomizeProblemDetails = (context) =>
+        {
+            context.ProblemDetails.Instance = $"{context.HttpContext.Request.Method} {context.HttpContext.Request.Path}";
+            context.ProblemDetails.Extensions.Add("requestId", context.HttpContext.TraceIdentifier);
+        });
+
+        return services;
+    }
+
+    public static IServiceCollection AddCustomApiVersioning(this IServiceCollection services)
     {
         services.AddApiVersioning(options =>
         {
@@ -52,8 +88,7 @@ public static class PresentationDependencyInjection
             options.AssumeDefaultVersionWhenUnspecified = true;
             options.ReportApiVersions = true;
             options.ApiVersionReader = new UrlSegmentApiVersionReader();
-        })
-        .AddMvc()
+        }).AddMvc()
         .AddApiExplorer(options =>
         {
             options.GroupNameFormat = "'v'VVV";
@@ -63,13 +98,30 @@ public static class PresentationDependencyInjection
         return services;
     }
 
-    private static IServiceCollection AddExceptionHandling(this IServiceCollection services)
+    public static IServiceCollection AddApiDocumentation(this IServiceCollection services)
+    {
+        string[] versions = ["v1"];
+
+        foreach (var version in versions)
+        {
+            services.AddOpenApi(version, options =>
+            {
+                options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
+                options.AddDocumentTransformer<VersionInfoTransformer>();
+                options.AddOperationTransformer<BearerSecurityOperationTransformer>();
+            });
+        }
+
+        return services;
+    }
+
+    public static IServiceCollection AddExceptionHandling(this IServiceCollection services)
     {
         services.AddExceptionHandler<GlobalExceptionHandler>();
         return services;
     }
 
-    private static IServiceCollection AddControllerWithJsonConfiguration(this IServiceCollection services)
+    public static IServiceCollection AddControllerWithJsonConfiguration(this IServiceCollection services)
     {
         services.AddControllers().AddJsonOptions(options =>
         {
@@ -86,7 +138,14 @@ public static class PresentationDependencyInjection
         return services;
     }
 
-    private static IServiceCollection AddConfiguredCors(
+    public static IServiceCollection AddIdentityInfrastructure(this IServiceCollection services)
+    {
+        services.AddScoped<IUser, CurrentUser>();
+        services.AddHttpContextAccessor();
+        return services;
+    }
+
+    public static IServiceCollection AddConfiguredCors(
         this IServiceCollection services,
         IConfiguration configuration,
         IHostEnvironment environment)
@@ -129,43 +188,6 @@ public static class PresentationDependencyInjection
         return services;
     }
 
-    private static IServiceCollection AddIdentityInfrastructure(this IServiceCollection services)
-    {
-        services.AddScoped<IUser, CurrentUser>();
-        services.AddHttpContextAccessor();
-        return services;
-    }
-
-    private static IServiceCollection AddAppRateLimiting(this IServiceCollection services)
-    {
-        services.AddRateLimiter(options =>
-        {
-            options.AddSlidingWindowLimiter("SlidingWindow", limiterOptions =>
-            {
-                limiterOptions.PermitLimit = 100;
-                limiterOptions.Window = TimeSpan.FromMinutes(1);
-                limiterOptions.SegmentsPerWindow = 6;
-                limiterOptions.QueueLimit = 10;
-                limiterOptions.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-                limiterOptions.AutoReplenishment = true;
-            });
-
-            options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-        });
-
-        return services;
-    }
-
-    private static IServiceCollection AddAppOutputCaching(this IServiceCollection services)
-    {
-        services.AddOutputCache(options =>
-        {
-            options.SizeLimit = 100 * 1024 * 1024;
-        });
-
-        return services;
-    }
-
     public static IApplicationBuilder UseCoreMiddlewares(this IApplicationBuilder app, IConfiguration configuration)
     {
         var environment = app.ApplicationServices.GetRequiredService<IWebHostEnvironment>();
@@ -174,10 +196,9 @@ public static class PresentationDependencyInjection
         app.UseStatusCodePages();
 
         if (!environment.IsDevelopment())
-        {
             app.UseHttpsRedirection();
-        }
 
+        app.UseSerilogRequestLogging();
         app.UseCors(configuration["AppSettings:CorsPolicyName"] ?? "Baytology");
         app.UseRateLimiter();
         app.UseAuthentication();
