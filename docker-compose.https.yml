@@ -1,0 +1,235 @@
+name: baytology-https
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: baytology-sqlserver
+    restart: unless-stopped
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "${BAYTOLOGY_SQL_PASSWORD:?Set BAYTOLOGY_SQL_PASSWORD in .env}"
+    ports:
+      - "14333:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P '${BAYTOLOGY_SQL_PASSWORD}' -C -Q 'SELECT 1' || /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P '${BAYTOLOGY_SQL_PASSWORD}' -Q 'SELECT 1'"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: baytology-rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  chatbot:
+    build:
+      context: ./docker/chatbot
+      dockerfile: Dockerfile
+    container_name: baytology-chatbot
+    restart: unless-stopped
+    working_dir: /app
+    volumes:
+      - ./Baytology-chatbot-system:/app
+      - ai-certs:/https
+    ports:
+      - "8000:8000"
+    environment:
+      PROPERTY_DATA_SOURCE: sql
+      SQL_SERVER_DRIVER: "ODBC Driver 18 for SQL Server"
+      SQL_SERVER_SERVER: "sqlserver,1433"
+      SQL_SERVER_DATABASE: BaytologyDB
+      SQL_SERVER_TRUSTED_CONNECTION: "false"
+      SQL_SERVER_USERNAME: sa
+      SQL_SERVER_PASSWORD: "${BAYTOLOGY_SQL_PASSWORD:?Set BAYTOLOGY_SQL_PASSWORD in .env}"
+      SQL_SERVER_ENCRYPT: "true"
+      SQL_SERVER_TRUST_SERVER_CERTIFICATE: "true"
+      SQL_QUERY_TIMEOUT_SECONDS: 60
+      LM_STUDIO_URL: "${LM_STUDIO_URL:-http://host.docker.internal:1234/v1}"
+      LM_STUDIO_MODEL: "${LM_STUDIO_MODEL:-gemma-2-9b-it}"
+      WHISPER_MODEL: large-v3
+      WHISPER_LANGUAGE: ar
+      WHISPER_DEVICE: cpu
+      WHISPER_COMPUTE_TYPE: int8
+      WHISPER_BEAM_SIZE: 1
+      WHISPER_BEST_OF: 1
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    command: >
+      bash -lc '
+        mkdir -p /https &&
+        if [ ! -f /https/ai.key ] || [ ! -f /https/ai.crt ]; then
+          openssl req -x509 -newkey rsa:2048 -nodes
+            -keyout /https/ai.key
+            -out /https/ai.crt
+            -days 365
+            -subj "/CN=localhost";
+        fi &&
+        uvicorn api:app --host 0.0.0.0 --port 8000
+          --ssl-certfile /https/ai.crt
+          --ssl-keyfile /https/ai.key
+      '
+
+  image-search:
+    build:
+      context: ./docker/image-search
+      dockerfile: Dockerfile
+    container_name: baytology-image-search
+    restart: unless-stopped
+    working_dir: /app/src
+    volumes:
+      - ./Search_By_Image:/app
+      - ai-certs:/https
+    ports:
+      - "8001:8001"
+    command: >
+      bash -lc '
+        mkdir -p /https &&
+        if [ ! -f /https/ai.key ] || [ ! -f /https/ai.crt ]; then
+          openssl req -x509 -newkey rsa:2048 -nodes
+            -keyout /https/ai.key
+            -out /https/ai.crt
+            -days 365
+            -subj "/CN=localhost";
+        fi &&
+        uvicorn api:app --host 0.0.0.0 --port 8001
+          --ssl-certfile /https/ai.crt
+          --ssl-keyfile /https/ai.key
+      '
+
+  recommendation:
+    build:
+      context: ./docker/recommendation
+      dockerfile: Dockerfile
+    container_name: baytology-recommendation
+    restart: unless-stopped
+    working_dir: /app
+    volumes:
+      - ./Baytology-feat-recommendation-system:/app
+      - ai-certs:/https
+    ports:
+      - "8002:8002"
+    environment:
+      WORKER_ENABLED: "false"
+      RABBITMQ_ENABLED: "false"
+      DOTNET_API_BASE_URL: "https://api:7053"
+      DOTNET_VERIFY_TLS: "false"
+      DOTNET_AI_SERVICE_TOKEN: "${BAYTOLOGY_AI_SERVICE_TOKEN:?Set BAYTOLOGY_AI_SERVICE_TOKEN in .env}"
+    command: >
+      bash -lc '
+        mkdir -p /https &&
+        if [ ! -f /https/ai.key ] || [ ! -f /https/ai.crt ]; then
+          openssl req -x509 -newkey rsa:2048 -nodes
+            -keyout /https/ai.key
+            -out /https/ai.crt
+            -days 365
+            -subj "/CN=localhost";
+        fi &&
+        uvicorn app:app --host 0.0.0.0 --port 8002
+          --ssl-certfile /https/ai.crt
+          --ssl-keyfile /https/ai.key
+      '
+
+  api:
+    image: mcr.microsoft.com/dotnet/sdk:10.0
+    container_name: baytology-api
+    restart: unless-stopped
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+      - api-https:/https
+      - nuget-cache:/root/.nuget/packages
+    ports:
+      - "7053:7053"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: "https://+:7053"
+      HTTPS_CERT_PASSWORD: "${BAYTOLOGY_HTTPS_CERT_PASSWORD:?Set BAYTOLOGY_HTTPS_CERT_PASSWORD in .env}"
+      ASPNETCORE_Kestrel__Certificates__Default__Path: /https/baytology-api.pfx
+      ASPNETCORE_Kestrel__Certificates__Default__Password: "${BAYTOLOGY_HTTPS_CERT_PASSWORD:?Set BAYTOLOGY_HTTPS_CERT_PASSWORD in .env}"
+      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=BaytologyDB;User Id=sa;Password=${BAYTOLOGY_SQL_PASSWORD};Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True"
+      JwtSettings__Secret: "${BAYTOLOGY_JWT_SECRET:?Set BAYTOLOGY_JWT_SECRET in .env}"
+      AdminSettings__DefaultPassword: "${BAYTOLOGY_ADMIN_PASSWORD:?Set BAYTOLOGY_ADMIN_PASSWORD in .env}"
+      StartupInitialization__SeedPropertyCsvOnStartup: "true"
+      RabbitMq__Enabled: "true"
+      RabbitMq__HostName: rabbitmq
+      Paymob__EnableLocalSimulation: "true"
+      ExternalAiServices__ChatbotEnabled: "true"
+      ExternalAiServices__ChatbotBaseUrl: "https://chatbot:8000"
+      ExternalAiServices__RecommendationEnabled: "true"
+      ExternalAiServices__RecommendationBaseUrl: "https://recommendation:8002"
+      ExternalAiServices__VoiceRecognitionEnabled: "true"
+      ExternalAiServices__VoiceRecognitionBaseUrl: "https://chatbot:8000"
+      ExternalAiServices__ImageSearchEnabled: "true"
+      ExternalAiServices__ImageSearchBaseUrl: "https://image-search:8001"
+      ExternalAiServices__AllowUntrustedCertificates: "true"
+      ExternalAiServices__TimeoutSeconds: "420"
+      AiWorker__ServiceToken: "${BAYTOLOGY_AI_SERVICE_TOKEN:?Set BAYTOLOGY_AI_SERVICE_TOKEN in .env}"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      chatbot:
+        condition: service_started
+      image-search:
+        condition: service_started
+      recommendation:
+        condition: service_started
+    command: >
+      bash -lc '
+        dotnet dev-certs https -ep /https/baytology-api.pfx -p "${BAYTOLOGY_HTTPS_CERT_PASSWORD}" &&
+        until (echo > /dev/tcp/sqlserver/1433) >/dev/null 2>&1; do
+          echo "Waiting for SQL Server...";
+          sleep 2;
+        done &&
+        dotnet restore Baytology.slnx &&
+        dotnet run --project src/Baytology.Api/Baytology.Api.csproj --urls=https://0.0.0.0:7053
+      '
+
+  frontend:
+    image: node:22-bookworm
+    container_name: baytology-frontend
+    restart: unless-stopped
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+      - frontend-node-modules:/app/node_modules
+    ports:
+      - "4200:4200"
+    environment:
+      CHOKIDAR_USEPOLLING: "true"
+      NODE_OPTIONS: "--max-old-space-size=4096"
+    depends_on:
+      api:
+        condition: service_started
+    command: >
+      bash -lc '
+        npm ci &&
+        npm start
+      '
+
+volumes:
+  sqlserver-data:
+  api-https:
+  ai-certs:
+  nuget-cache:
+  frontend-node-modules:
