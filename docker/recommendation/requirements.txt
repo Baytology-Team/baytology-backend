@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+pandas
+numpy
+faiss-cpu
+scikit-learn==1.7.2
+httpx
+pika
+pydantic-settings
+python-dotenv
