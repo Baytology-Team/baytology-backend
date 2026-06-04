@@ -22,274 +22,97 @@ namespace Baytology.Infrastructure.Data.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Baytology.Domain.AISearch.ImageSearch", b =>
+            modelBuilder.Entity("Baytology.Domain.AuditLogs.AuditLog", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("EmbeddingVector")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ImageFileUrl")
+                    b.Property<string>("Action")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ModelUsed")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<DateTimeOffset?>("ProcessedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<Guid>("SearchRequestId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    SqlServerKeyBuilderExtensions.IsClustered(b.HasKey("Id"), false);
-
-                    b.HasIndex("SearchRequestId")
-                        .IsUnique();
-
-                    b.ToTable("ImageSearches", (string)null);
-                });
-
-            modelBuilder.Entity("Baytology.Domain.AISearch.SearchFilter", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("City")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("District")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("ListingType")
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
-                    b.Property<decimal?>("MaxArea")
-                        .HasPrecision(12, 2)
-                        .HasColumnType("decimal(12,2)");
-
-                    b.Property<int?>("MaxBedrooms")
-                        .HasColumnType("int");
-
-                    b.Property<decimal?>("MaxPrice")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal?>("MinArea")
-                        .HasPrecision(12, 2)
-                        .HasColumnType("decimal(12,2)");
-
-                    b.Property<int?>("MinBedrooms")
-                        .HasColumnType("int");
-
-                    b.Property<decimal?>("MinPrice")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("PropertyType")
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
-
-                    b.Property<Guid>("SearchRequestId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    SqlServerKeyBuilderExtensions.IsClustered(b.HasKey("Id"), false);
-
-                    b.HasIndex("SearchRequestId")
-                        .IsUnique();
-
-                    b.ToTable("SearchFilters", null, t =>
-                        {
-                            t.HasCheckConstraint("CK_SearchFilters_Ranges", "([MinPrice] IS NULL OR [MinPrice] >= 0) AND ([MaxPrice] IS NULL OR [MaxPrice] >= 0) AND ([MinPrice] IS NULL OR [MaxPrice] IS NULL OR [MinPrice] <= [MaxPrice]) AND ([MinArea] IS NULL OR [MinArea] >= 0) AND ([MaxArea] IS NULL OR [MaxArea] >= 0) AND ([MinArea] IS NULL OR [MaxArea] IS NULL OR [MinArea] <= [MaxArea]) AND ([MinBedrooms] IS NULL OR [MinBedrooms] >= 0) AND ([MaxBedrooms] IS NULL OR [MaxBedrooms] >= 0) AND ([MinBedrooms] IS NULL OR [MaxBedrooms] IS NULL OR [MinBedrooms] <= [MaxBedrooms])");
-                        });
-                });
-
-            modelBuilder.Entity("Baytology.Domain.AISearch.SearchRequest", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("CorrelationId")
+                    b.Property<string>("EntityId")
+                        .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("InputType")
+                    b.Property<string>("EntityName")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<DateTimeOffset?>("ResolvedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<int>("ResultCount")
-                        .HasColumnType("int");
-
-                    b.Property<string>("SearchEngine")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    SqlServerKeyBuilderExtensions.IsClustered(b.HasKey("Id"), false);
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("SearchRequests", null, t =>
-                        {
-                            t.HasCheckConstraint("CK_SearchRequests_State", "LEN(LTRIM(RTRIM([UserId]))) > 0 AND [ResultCount] >= 0 AND (([Status] = 'Pending' AND [ResolvedAt] IS NULL) OR ([Status] <> 'Pending' AND [ResolvedAt] IS NOT NULL))");
-                        });
-                });
-
-            modelBuilder.Entity("Baytology.Domain.AISearch.SearchResult", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("PropertyId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("Rank")
-                        .HasColumnType("int");
-
-                    b.Property<float>("RelevanceScore")
-                        .HasColumnType("real");
-
-                    b.Property<string>("ScoreSource")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<Guid>("SearchRequestId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("SnapshotCity")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<decimal?>("SnapshotPrice")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("SnapshotStatus")
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
-
-                    b.Property<string>("SnapshotTitle")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.HasKey("Id");
-
-                    SqlServerKeyBuilderExtensions.IsClustered(b.HasKey("Id"), false);
-
-                    b.HasIndex("SearchRequestId", "Rank")
-                        .IsUnique();
-
-                    b.ToTable("SearchResults", null, t =>
-                        {
-                            t.HasCheckConstraint("CK_SearchResults_BusinessRules", "[Rank] > 0 AND [RelevanceScore] >= 0 AND ([SnapshotPrice] IS NULL OR [SnapshotPrice] >= 0)");
-                        });
-                });
-
-            modelBuilder.Entity("Baytology.Domain.AISearch.TextSearch", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("ParsedQuery")
-                        .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)");
-
-                    b.Property<string>("RawQuery")
-                        .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)");
-
-                    b.Property<Guid>("SearchRequestId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    SqlServerKeyBuilderExtensions.IsClustered(b.HasKey("Id"), false);
-
-                    b.HasIndex("SearchRequestId")
-                        .IsUnique();
-
-                    b.ToTable("TextSearches", (string)null);
-                });
-
-            modelBuilder.Entity("Baytology.Domain.AISearch.VoiceSearch", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("AudioFileUrl")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<float?>("ConfidenceScore")
-                        .HasColumnType("real");
-
-                    b.Property<string>("Language")
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
-
-                    b.Property<string>("ParsedQuery")
-                        .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)");
-
-                    b.Property<DateTimeOffset?>("ProcessedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("STTProvider")
+                    b.Property<string>("IpAddress")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<Guid>("SearchRequestId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<string>("NewValues")
+                        .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("TranscribedText")
-                        .HasMaxLength(5000)
+                    b.Property<DateTimeOffset>("OccurredOnUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("OldValues")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
                     SqlServerKeyBuilderExtensions.IsClustered(b.HasKey("Id"), false);
 
-                    b.HasIndex("SearchRequestId")
-                        .IsUnique();
+                    b.HasIndex("EntityName");
 
-                    b.ToTable("VoiceSearches", (string)null);
+                    b.HasIndex("OccurredOnUtc");
+
+                    b.ToTable("AuditLogs", (string)null);
                 });
 
-            modelBuilder.Entity("Baytology.Domain.AgentDetails.AgentDetail", b =>
+            modelBuilder.Entity("Baytology.Domain.DomainEvents.DomainEventLog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AggregateId")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("AggregateType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("EventType")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<bool>("IsPublished")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTimeOffset>("OccurredOnUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Payload")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset?>("PublishedOnUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("Id");
+
+                    SqlServerKeyBuilderExtensions.IsClustered(b.HasKey("Id"), false);
+
+                    b.HasIndex("IsPublished");
+
+                    b.ToTable("DomainEvents", (string)null);
+                });
+
+            modelBuilder.Entity("Baytology.Domain.Entities.AgentDetail", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -344,55 +167,101 @@ namespace Baytology.Infrastructure.Data.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Baytology.Domain.AuditLogs.AuditLog", b =>
+            modelBuilder.Entity("Baytology.Domain.Entities.AgentReview", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("Action")
+                    b.Property<string>("AgentUserId")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("EntityId")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                    b.Property<string>("Comment")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
 
-                    b.Property<string>("EntityName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("IpAddress")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("NewValues")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTimeOffset>("OccurredOnUtc")
+                    b.Property<DateTimeOffset>("CreatedOnUtc")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<string>("OldValues")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<Guid?>("PropertyId")
+                        .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("Rating")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ReviewerUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
                     SqlServerKeyBuilderExtensions.IsClustered(b.HasKey("Id"), false);
 
-                    b.HasIndex("EntityName");
+                    b.HasIndex("AgentUserId");
 
-                    b.HasIndex("OccurredOnUtc");
+                    b.HasIndex("PropertyId");
 
-                    b.ToTable("AuditLogs", (string)null);
+                    b.HasIndex("ReviewerUserId");
+
+                    b.HasIndex("AgentUserId", "ReviewerUserId")
+                        .IsUnique()
+                        .HasFilter("[PropertyId] IS NULL");
+
+                    b.HasIndex("AgentUserId", "ReviewerUserId", "PropertyId")
+                        .IsUnique()
+                        .HasFilter("[PropertyId] IS NOT NULL");
+
+                    b.ToTable("AgentReviews", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_AgentReviews_DistinctUsers", "[AgentUserId] <> [ReviewerUserId]");
+
+                            t.HasCheckConstraint("CK_AgentReviews_Rating_Range", "[Rating] >= 1 AND [Rating] <= 5");
+                        });
                 });
 
-            modelBuilder.Entity("Baytology.Domain.Bookings.Booking", b =>
+            modelBuilder.Entity("Baytology.Domain.Entities.AvailabilityRule", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AgentUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int?>("DayOfWeek")
+                        .HasColumnType("int");
+
+                    b.Property<TimeSpan>("EndTime")
+                        .HasColumnType("time");
+
+                    b.Property<Guid?>("PropertyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("RecurrenceType")
+                        .HasColumnType("int");
+
+                    b.Property<TimeSpan>("SlotDuration")
+                        .HasColumnType("time");
+
+                    b.Property<DateOnly?>("SpecificDate")
+                        .HasColumnType("date");
+
+                    b.Property<TimeSpan>("StartTime")
+                        .HasColumnType("time");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AgentUserId");
+
+                    b.HasIndex("PropertyId");
+
+                    b.ToTable("AvailabilityRules");
+                });
+
+            modelBuilder.Entity("Baytology.Domain.Entities.Booking", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -458,7 +327,7 @@ namespace Baytology.Infrastructure.Data.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Baytology.Domain.Conversations.Conversation", b =>
+            modelBuilder.Entity("Baytology.Domain.Entities.Conversation", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -498,7 +367,7 @@ namespace Baytology.Infrastructure.Data.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Baytology.Domain.Conversations.Message", b =>
+            modelBuilder.Entity("Baytology.Domain.Entities.Message", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -546,91 +415,7 @@ namespace Baytology.Infrastructure.Data.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Baytology.Domain.DomainEvents.DomainEventLog", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("AggregateId")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<string>("AggregateType")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("EventType")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<bool>("IsPublished")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTimeOffset>("OccurredOnUtc")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("Payload")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTimeOffset?>("PublishedOnUtc")
-                        .HasColumnType("datetimeoffset");
-
-                    b.HasKey("Id");
-
-                    SqlServerKeyBuilderExtensions.IsClustered(b.HasKey("Id"), false);
-
-                    b.HasIndex("IsPublished");
-
-                    b.ToTable("DomainEvents", (string)null);
-                });
-
-            modelBuilder.Entity("Baytology.Domain.Identity.RefreshToken", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTimeOffset>("CreatedOnUtc")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<DateTimeOffset>("ExpiresOnUtc")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("Token")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTimeOffset>("UpdatedOnUtc")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    SqlServerKeyBuilderExtensions.IsClustered(b.HasKey("Id"), false);
-
-                    b.HasIndex("Token")
-                        .IsUnique();
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("RefreshTokens", (string)null);
-                });
-
-            modelBuilder.Entity("Baytology.Domain.Notifications.Notification", b =>
+            modelBuilder.Entity("Baytology.Domain.Entities.Notification", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -684,7 +469,7 @@ namespace Baytology.Infrastructure.Data.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Baytology.Domain.Payments.Payment", b =>
+            modelBuilder.Entity("Baytology.Domain.Entities.Payment", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -763,7 +548,7 @@ namespace Baytology.Infrastructure.Data.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Baytology.Domain.Payments.PaymentTransaction", b =>
+            modelBuilder.Entity("Baytology.Domain.Entities.PaymentTransaction", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -806,118 +591,7 @@ namespace Baytology.Infrastructure.Data.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Baytology.Domain.Payments.RefundRequest", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<decimal>("Amount")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTimeOffset>("CreatedOnUtc")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<Guid>("PaymentId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Reason")
-                        .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)");
-
-                    b.Property<string>("RequestedBy")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("ReviewedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<DateTimeOffset?>("ReviewedOnUtc")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
-
-                    b.HasKey("Id");
-
-                    SqlServerKeyBuilderExtensions.IsClustered(b.HasKey("Id"), false);
-
-                    b.HasIndex("PaymentId")
-                        .IsUnique()
-                        .HasFilter("[Status] = 'Pending'");
-
-                    b.HasIndex("PaymentId", "Status");
-
-                    b.ToTable("RefundRequests", null, t =>
-                        {
-                            t.HasCheckConstraint("CK_RefundRequests_Amount_Positive", "[Amount] > 0");
-
-                            t.HasCheckConstraint("CK_RefundRequests_ReviewState", "([Status] = 'Pending' AND [ReviewedBy] IS NULL AND [ReviewedOnUtc] IS NULL) OR ([Status] IN ('Approved','Rejected','Processed') AND [ReviewedBy] IS NOT NULL AND [ReviewedOnUtc] IS NOT NULL)");
-
-                            t.HasCheckConstraint("CK_RefundRequests_Status_Valid", "[Status] IN ('Pending','Approved','Rejected','Processed')");
-                        });
-                });
-
-            modelBuilder.Entity("Baytology.Domain.Properties.AgentReview", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("AgentUserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("Comment")
-                        .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)");
-
-                    b.Property<DateTimeOffset>("CreatedOnUtc")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<Guid?>("PropertyId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("Rating")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ReviewerUserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    SqlServerKeyBuilderExtensions.IsClustered(b.HasKey("Id"), false);
-
-                    b.HasIndex("AgentUserId");
-
-                    b.HasIndex("PropertyId");
-
-                    b.HasIndex("ReviewerUserId");
-
-                    b.HasIndex("AgentUserId", "ReviewerUserId")
-                        .IsUnique()
-                        .HasFilter("[PropertyId] IS NULL");
-
-                    b.HasIndex("AgentUserId", "ReviewerUserId", "PropertyId")
-                        .IsUnique()
-                        .HasFilter("[PropertyId] IS NOT NULL");
-
-                    b.ToTable("AgentReviews", null, t =>
-                        {
-                            t.HasCheckConstraint("CK_AgentReviews_DistinctUsers", "[AgentUserId] <> [ReviewerUserId]");
-
-                            t.HasCheckConstraint("CK_AgentReviews_Rating_Range", "[Rating] >= 1 AND [Rating] <= 5");
-                        });
-                });
-
-            modelBuilder.Entity("Baytology.Domain.Properties.Property", b =>
+            modelBuilder.Entity("Baytology.Domain.Entities.Property", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -1034,7 +708,7 @@ namespace Baytology.Infrastructure.Data.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Baytology.Domain.Properties.PropertyAmenity", b =>
+            modelBuilder.Entity("Baytology.Domain.Entities.PropertyAmenity", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -1086,7 +760,7 @@ namespace Baytology.Infrastructure.Data.Migrations
                     b.ToTable("PropertyAmenities", (string)null);
                 });
 
-            modelBuilder.Entity("Baytology.Domain.Properties.PropertyImage", b =>
+            modelBuilder.Entity("Baytology.Domain.Entities.PropertyImage", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -1122,7 +796,7 @@ namespace Baytology.Infrastructure.Data.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Baytology.Domain.Properties.PropertyView", b =>
+            modelBuilder.Entity("Baytology.Domain.Entities.PropertyView", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -1152,7 +826,107 @@ namespace Baytology.Infrastructure.Data.Migrations
                     b.ToTable("PropertyViews", (string)null);
                 });
 
-            modelBuilder.Entity("Baytology.Domain.Properties.SavedProperty", b =>
+            modelBuilder.Entity("Baytology.Domain.Entities.RefreshToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset>("CreatedOnUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset>("ExpiresOnUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset>("UpdatedOnUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    SqlServerKeyBuilderExtensions.IsClustered(b.HasKey("Id"), false);
+
+                    b.HasIndex("Token")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("RefreshTokens", (string)null);
+                });
+
+            modelBuilder.Entity("Baytology.Domain.Entities.RefundRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTimeOffset>("CreatedOnUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("PaymentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("RequestedBy")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ReviewedBy")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTimeOffset?>("ReviewedOnUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.HasKey("Id");
+
+                    SqlServerKeyBuilderExtensions.IsClustered(b.HasKey("Id"), false);
+
+                    b.HasIndex("PaymentId")
+                        .IsUnique()
+                        .HasFilter("[Status] = 'Pending'");
+
+                    b.HasIndex("PaymentId", "Status");
+
+                    b.ToTable("RefundRequests", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_RefundRequests_Amount_Positive", "[Amount] > 0");
+
+                            t.HasCheckConstraint("CK_RefundRequests_ReviewState", "([Status] = 'Pending' AND [ReviewedBy] IS NULL AND [ReviewedOnUtc] IS NULL) OR ([Status] IN ('Approved','Rejected','Processed') AND [ReviewedBy] IS NOT NULL AND [ReviewedOnUtc] IS NOT NULL)");
+
+                            t.HasCheckConstraint("CK_RefundRequests_Status_Valid", "[Status] IN ('Pending','Approved','Rejected','Processed')");
+                        });
+                });
+
+            modelBuilder.Entity("Baytology.Domain.Entities.SavedProperty", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -1180,7 +954,94 @@ namespace Baytology.Infrastructure.Data.Migrations
                     b.ToTable("SavedProperties", (string)null);
                 });
 
-            modelBuilder.Entity("Baytology.Domain.Recommendations.RecommendationRequest", b =>
+            modelBuilder.Entity("Baytology.Domain.Entities.UserProfile", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AvatarUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Bio")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset>("CreatedOnUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("PreferredContactMethod")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset>("UpdatedOnUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    SqlServerKeyBuilderExtensions.IsClustered(b.HasKey("Id"), false);
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("UserProfiles", (string)null);
+                });
+
+            modelBuilder.Entity("Baytology.Domain.ValueObjects.ImageSearch", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("EmbeddingVector")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ImageFileUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ModelUsed")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTimeOffset?>("ProcessedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("SearchRequestId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    SqlServerKeyBuilderExtensions.IsClustered(b.HasKey("Id"), false);
+
+                    b.HasIndex("SearchRequestId")
+                        .IsUnique();
+
+                    b.ToTable("ImageSearches", (string)null);
+                });
+
+            modelBuilder.Entity("Baytology.Domain.ValueObjects.RecommendationRequest", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -1233,7 +1094,7 @@ namespace Baytology.Infrastructure.Data.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Baytology.Domain.Recommendations.RecommendationResult", b =>
+            modelBuilder.Entity("Baytology.Domain.ValueObjects.RecommendationResult", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -1278,45 +1139,99 @@ namespace Baytology.Infrastructure.Data.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Baytology.Domain.UserProfiles.UserProfile", b =>
+            modelBuilder.Entity("Baytology.Domain.ValueObjects.SearchFilter", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("AvatarUrl")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                    b.Property<string>("City")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("Bio")
-                        .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)");
+                    b.Property<string>("District")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<string>("ListingType")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
-                    b.Property<DateTimeOffset>("CreatedOnUtc")
-                        .HasColumnType("datetimeoffset");
+                    b.Property<decimal?>("MaxArea")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("decimal(12,2)");
 
-                    b.Property<string>("DisplayName")
-                        .IsRequired()
+                    b.Property<int?>("MaxBedrooms")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("MaxPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("MinArea")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("decimal(12,2)");
+
+                    b.Property<int?>("MinBedrooms")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("MinPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("PropertyType")
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<Guid>("SearchRequestId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    SqlServerKeyBuilderExtensions.IsClustered(b.HasKey("Id"), false);
+
+                    b.HasIndex("SearchRequestId")
+                        .IsUnique();
+
+                    b.ToTable("SearchFilters", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_SearchFilters_Ranges", "([MinPrice] IS NULL OR [MinPrice] >= 0) AND ([MaxPrice] IS NULL OR [MaxPrice] >= 0) AND ([MinPrice] IS NULL OR [MaxPrice] IS NULL OR [MinPrice] <= [MaxPrice]) AND ([MinArea] IS NULL OR [MinArea] >= 0) AND ([MaxArea] IS NULL OR [MaxArea] >= 0) AND ([MinArea] IS NULL OR [MaxArea] IS NULL OR [MinArea] <= [MaxArea]) AND ([MinBedrooms] IS NULL OR [MinBedrooms] >= 0) AND ([MaxBedrooms] IS NULL OR [MaxBedrooms] >= 0) AND ([MinBedrooms] IS NULL OR [MaxBedrooms] IS NULL OR [MinBedrooms] <= [MaxBedrooms])");
+                        });
+                });
+
+            modelBuilder.Entity("Baytology.Domain.ValueObjects.SearchRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CorrelationId")
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.Property<string>("PhoneNumber")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
 
-                    b.Property<string>("PreferredContactMethod")
+                    b.Property<string>("InputType")
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
-                    b.Property<string>("UpdatedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTimeOffset>("UpdatedOnUtc")
+                    b.Property<DateTimeOffset?>("ResolvedAt")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("ResultCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SearchEngine")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("UserId")
                         .IsRequired()
@@ -1326,10 +1241,136 @@ namespace Baytology.Infrastructure.Data.Migrations
 
                     SqlServerKeyBuilderExtensions.IsClustered(b.HasKey("Id"), false);
 
-                    b.HasIndex("UserId")
+                    b.HasIndex("UserId");
+
+                    b.ToTable("SearchRequests", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_SearchRequests_State", "LEN(LTRIM(RTRIM([UserId]))) > 0 AND [ResultCount] >= 0 AND (([Status] = 'Pending' AND [ResolvedAt] IS NULL) OR ([Status] <> 'Pending' AND [ResolvedAt] IS NOT NULL))");
+                        });
+                });
+
+            modelBuilder.Entity("Baytology.Domain.ValueObjects.SearchResult", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("PropertyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Rank")
+                        .HasColumnType("int");
+
+                    b.Property<float>("RelevanceScore")
+                        .HasColumnType("real");
+
+                    b.Property<string>("ScoreSource")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<Guid>("SearchRequestId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("SnapshotCity")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<decimal?>("SnapshotPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("SnapshotStatus")
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("SnapshotTitle")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.HasKey("Id");
+
+                    SqlServerKeyBuilderExtensions.IsClustered(b.HasKey("Id"), false);
+
+                    b.HasIndex("SearchRequestId", "Rank")
                         .IsUnique();
 
-                    b.ToTable("UserProfiles", (string)null);
+                    b.ToTable("SearchResults", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_SearchResults_BusinessRules", "[Rank] > 0 AND [RelevanceScore] >= 0 AND ([SnapshotPrice] IS NULL OR [SnapshotPrice] >= 0)");
+                        });
+                });
+
+            modelBuilder.Entity("Baytology.Domain.ValueObjects.TextSearch", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ParsedQuery")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("RawQuery")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<Guid>("SearchRequestId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    SqlServerKeyBuilderExtensions.IsClustered(b.HasKey("Id"), false);
+
+                    b.HasIndex("SearchRequestId")
+                        .IsUnique();
+
+                    b.ToTable("TextSearches", (string)null);
+                });
+
+            modelBuilder.Entity("Baytology.Domain.ValueObjects.VoiceSearch", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AudioFileUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<float?>("ConfidenceScore")
+                        .HasColumnType("real");
+
+                    b.Property<string>("Language")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("ParsedQuery")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<DateTimeOffset?>("ProcessedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("STTProvider")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<Guid>("SearchRequestId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("TranscribedText")
+                        .HasMaxLength(5000)
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    SqlServerKeyBuilderExtensions.IsClustered(b.HasKey("Id"), false);
+
+                    b.HasIndex("SearchRequestId")
+                        .IsUnique();
+
+                    b.ToTable("VoiceSearches", (string)null);
                 });
 
             modelBuilder.Entity("Baytology.Infrastructure.Identity.AppUser", b =>
@@ -1533,70 +1574,16 @@ namespace Baytology.Infrastructure.Data.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("Baytology.Domain.AISearch.ImageSearch", b =>
-                {
-                    b.HasOne("Baytology.Domain.AISearch.SearchRequest", null)
-                        .WithOne("ImageSearch")
-                        .HasForeignKey("Baytology.Domain.AISearch.ImageSearch", "SearchRequestId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Baytology.Domain.AISearch.SearchFilter", b =>
-                {
-                    b.HasOne("Baytology.Domain.AISearch.SearchRequest", null)
-                        .WithOne("Filter")
-                        .HasForeignKey("Baytology.Domain.AISearch.SearchFilter", "SearchRequestId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Baytology.Domain.AISearch.SearchRequest", b =>
-                {
-                    b.HasOne("Baytology.Infrastructure.Identity.AppUser", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Baytology.Domain.AISearch.SearchResult", b =>
-                {
-                    b.HasOne("Baytology.Domain.AISearch.SearchRequest", null)
-                        .WithMany("Results")
-                        .HasForeignKey("SearchRequestId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Baytology.Domain.AISearch.TextSearch", b =>
-                {
-                    b.HasOne("Baytology.Domain.AISearch.SearchRequest", null)
-                        .WithOne("TextSearch")
-                        .HasForeignKey("Baytology.Domain.AISearch.TextSearch", "SearchRequestId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Baytology.Domain.AISearch.VoiceSearch", b =>
-                {
-                    b.HasOne("Baytology.Domain.AISearch.SearchRequest", null)
-                        .WithOne("VoiceSearch")
-                        .HasForeignKey("Baytology.Domain.AISearch.VoiceSearch", "SearchRequestId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Baytology.Domain.AgentDetails.AgentDetail", b =>
+            modelBuilder.Entity("Baytology.Domain.Entities.AgentDetail", b =>
                 {
                     b.HasOne("Baytology.Infrastructure.Identity.AppUser", null)
                         .WithOne()
-                        .HasForeignKey("Baytology.Domain.AgentDetails.AgentDetail", "UserId")
+                        .HasForeignKey("Baytology.Domain.Entities.AgentDetail", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Baytology.Domain.Bookings.Booking", b =>
+            modelBuilder.Entity("Baytology.Domain.Entities.AgentReview", b =>
                 {
                     b.HasOne("Baytology.Infrastructure.Identity.AppUser", null)
                         .WithMany()
@@ -1604,12 +1591,32 @@ namespace Baytology.Infrastructure.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Baytology.Domain.Payments.Payment", null)
+                    b.HasOne("Baytology.Domain.Entities.Property", null)
+                        .WithMany()
+                        .HasForeignKey("PropertyId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Baytology.Infrastructure.Identity.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("ReviewerUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Baytology.Domain.Entities.Booking", b =>
+                {
+                    b.HasOne("Baytology.Infrastructure.Identity.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("AgentUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Baytology.Domain.Entities.Payment", null)
                         .WithMany()
                         .HasForeignKey("PaymentId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("Baytology.Domain.Properties.Property", null)
+                    b.HasOne("Baytology.Domain.Entities.Property", null)
                         .WithMany()
                         .HasForeignKey("PropertyId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -1622,7 +1629,7 @@ namespace Baytology.Infrastructure.Data.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Baytology.Domain.Conversations.Conversation", b =>
+            modelBuilder.Entity("Baytology.Domain.Entities.Conversation", b =>
                 {
                     b.HasOne("Baytology.Infrastructure.Identity.AppUser", null)
                         .WithMany()
@@ -1636,16 +1643,16 @@ namespace Baytology.Infrastructure.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Baytology.Domain.Properties.Property", null)
+                    b.HasOne("Baytology.Domain.Entities.Property", null)
                         .WithMany()
                         .HasForeignKey("PropertyId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Baytology.Domain.Conversations.Message", b =>
+            modelBuilder.Entity("Baytology.Domain.Entities.Message", b =>
                 {
-                    b.HasOne("Baytology.Domain.Conversations.Conversation", null)
+                    b.HasOne("Baytology.Domain.Entities.Conversation", null)
                         .WithMany("Messages")
                         .HasForeignKey("ConversationId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1658,16 +1665,7 @@ namespace Baytology.Infrastructure.Data.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Baytology.Domain.Identity.RefreshToken", b =>
-                {
-                    b.HasOne("Baytology.Infrastructure.Identity.AppUser", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Baytology.Domain.Notifications.Notification", b =>
+            modelBuilder.Entity("Baytology.Domain.Entities.Notification", b =>
                 {
                     b.HasOne("Baytology.Infrastructure.Identity.AppUser", null)
                         .WithMany()
@@ -1676,7 +1674,7 @@ namespace Baytology.Infrastructure.Data.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Baytology.Domain.Payments.Payment", b =>
+            modelBuilder.Entity("Baytology.Domain.Entities.Payment", b =>
                 {
                     b.HasOne("Baytology.Infrastructure.Identity.AppUser", null)
                         .WithMany()
@@ -1690,52 +1688,23 @@ namespace Baytology.Infrastructure.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Baytology.Domain.Properties.Property", null)
+                    b.HasOne("Baytology.Domain.Entities.Property", null)
                         .WithMany()
                         .HasForeignKey("PropertyId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Baytology.Domain.Payments.PaymentTransaction", b =>
+            modelBuilder.Entity("Baytology.Domain.Entities.PaymentTransaction", b =>
                 {
-                    b.HasOne("Baytology.Domain.Payments.Payment", null)
+                    b.HasOne("Baytology.Domain.Entities.Payment", null)
                         .WithMany("Transactions")
                         .HasForeignKey("PaymentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Baytology.Domain.Payments.RefundRequest", b =>
-                {
-                    b.HasOne("Baytology.Domain.Payments.Payment", null)
-                        .WithMany()
-                        .HasForeignKey("PaymentId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Baytology.Domain.Properties.AgentReview", b =>
-                {
-                    b.HasOne("Baytology.Infrastructure.Identity.AppUser", null)
-                        .WithMany()
-                        .HasForeignKey("AgentUserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Baytology.Domain.Properties.Property", null)
-                        .WithMany()
-                        .HasForeignKey("PropertyId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("Baytology.Infrastructure.Identity.AppUser", null)
-                        .WithMany()
-                        .HasForeignKey("ReviewerUserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Baytology.Domain.Properties.Property", b =>
+            modelBuilder.Entity("Baytology.Domain.Entities.Property", b =>
                 {
                     b.HasOne("Baytology.Infrastructure.Identity.AppUser", null)
                         .WithMany()
@@ -1744,27 +1713,27 @@ namespace Baytology.Infrastructure.Data.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Baytology.Domain.Properties.PropertyAmenity", b =>
+            modelBuilder.Entity("Baytology.Domain.Entities.PropertyAmenity", b =>
                 {
-                    b.HasOne("Baytology.Domain.Properties.Property", null)
+                    b.HasOne("Baytology.Domain.Entities.Property", null)
                         .WithOne("Amenity")
-                        .HasForeignKey("Baytology.Domain.Properties.PropertyAmenity", "PropertyId")
+                        .HasForeignKey("Baytology.Domain.Entities.PropertyAmenity", "PropertyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Baytology.Domain.Properties.PropertyImage", b =>
+            modelBuilder.Entity("Baytology.Domain.Entities.PropertyImage", b =>
                 {
-                    b.HasOne("Baytology.Domain.Properties.Property", null)
+                    b.HasOne("Baytology.Domain.Entities.Property", null)
                         .WithMany("Images")
                         .HasForeignKey("PropertyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Baytology.Domain.Properties.PropertyView", b =>
+            modelBuilder.Entity("Baytology.Domain.Entities.PropertyView", b =>
                 {
-                    b.HasOne("Baytology.Domain.Properties.Property", null)
+                    b.HasOne("Baytology.Domain.Entities.Property", null)
                         .WithMany()
                         .HasForeignKey("PropertyId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1776,9 +1745,27 @@ namespace Baytology.Infrastructure.Data.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
                 });
 
-            modelBuilder.Entity("Baytology.Domain.Properties.SavedProperty", b =>
+            modelBuilder.Entity("Baytology.Domain.Entities.RefreshToken", b =>
                 {
-                    b.HasOne("Baytology.Domain.Properties.Property", null)
+                    b.HasOne("Baytology.Infrastructure.Identity.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Baytology.Domain.Entities.RefundRequest", b =>
+                {
+                    b.HasOne("Baytology.Domain.Entities.Payment", null)
+                        .WithMany()
+                        .HasForeignKey("PaymentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Baytology.Domain.Entities.SavedProperty", b =>
+                {
+                    b.HasOne("Baytology.Domain.Entities.Property", null)
                         .WithMany()
                         .HasForeignKey("PropertyId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1791,7 +1778,25 @@ namespace Baytology.Infrastructure.Data.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Baytology.Domain.Recommendations.RecommendationRequest", b =>
+            modelBuilder.Entity("Baytology.Domain.Entities.UserProfile", b =>
+                {
+                    b.HasOne("Baytology.Infrastructure.Identity.AppUser", null)
+                        .WithOne()
+                        .HasForeignKey("Baytology.Domain.Entities.UserProfile", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Baytology.Domain.ValueObjects.ImageSearch", b =>
+                {
+                    b.HasOne("Baytology.Domain.ValueObjects.SearchRequest", null)
+                        .WithOne("ImageSearch")
+                        .HasForeignKey("Baytology.Domain.ValueObjects.ImageSearch", "SearchRequestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Baytology.Domain.ValueObjects.RecommendationRequest", b =>
                 {
                     b.HasOne("Baytology.Infrastructure.Identity.AppUser", null)
                         .WithMany()
@@ -1800,25 +1805,61 @@ namespace Baytology.Infrastructure.Data.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Baytology.Domain.Recommendations.RecommendationResult", b =>
+            modelBuilder.Entity("Baytology.Domain.ValueObjects.RecommendationResult", b =>
                 {
-                    b.HasOne("Baytology.Domain.Properties.Property", null)
+                    b.HasOne("Baytology.Domain.Entities.Property", null)
                         .WithMany()
                         .HasForeignKey("RecommendedPropertyId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("Baytology.Domain.Recommendations.RecommendationRequest", null)
+                    b.HasOne("Baytology.Domain.ValueObjects.RecommendationRequest", null)
                         .WithMany("Results")
                         .HasForeignKey("RequestId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Baytology.Domain.UserProfiles.UserProfile", b =>
+            modelBuilder.Entity("Baytology.Domain.ValueObjects.SearchFilter", b =>
+                {
+                    b.HasOne("Baytology.Domain.ValueObjects.SearchRequest", null)
+                        .WithOne("Filter")
+                        .HasForeignKey("Baytology.Domain.ValueObjects.SearchFilter", "SearchRequestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Baytology.Domain.ValueObjects.SearchRequest", b =>
                 {
                     b.HasOne("Baytology.Infrastructure.Identity.AppUser", null)
-                        .WithOne()
-                        .HasForeignKey("Baytology.Domain.UserProfiles.UserProfile", "UserId")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Baytology.Domain.ValueObjects.SearchResult", b =>
+                {
+                    b.HasOne("Baytology.Domain.ValueObjects.SearchRequest", null)
+                        .WithMany("Results")
+                        .HasForeignKey("SearchRequestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Baytology.Domain.ValueObjects.TextSearch", b =>
+                {
+                    b.HasOne("Baytology.Domain.ValueObjects.SearchRequest", null)
+                        .WithOne("TextSearch")
+                        .HasForeignKey("Baytology.Domain.ValueObjects.TextSearch", "SearchRequestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Baytology.Domain.ValueObjects.VoiceSearch", b =>
+                {
+                    b.HasOne("Baytology.Domain.ValueObjects.SearchRequest", null)
+                        .WithOne("VoiceSearch")
+                        .HasForeignKey("Baytology.Domain.ValueObjects.VoiceSearch", "SearchRequestId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -1874,7 +1915,29 @@ namespace Baytology.Infrastructure.Data.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Baytology.Domain.AISearch.SearchRequest", b =>
+            modelBuilder.Entity("Baytology.Domain.Entities.Conversation", b =>
+                {
+                    b.Navigation("Messages");
+                });
+
+            modelBuilder.Entity("Baytology.Domain.Entities.Payment", b =>
+                {
+                    b.Navigation("Transactions");
+                });
+
+            modelBuilder.Entity("Baytology.Domain.Entities.Property", b =>
+                {
+                    b.Navigation("Amenity");
+
+                    b.Navigation("Images");
+                });
+
+            modelBuilder.Entity("Baytology.Domain.ValueObjects.RecommendationRequest", b =>
+                {
+                    b.Navigation("Results");
+                });
+
+            modelBuilder.Entity("Baytology.Domain.ValueObjects.SearchRequest", b =>
                 {
                     b.Navigation("Filter");
 
@@ -1885,28 +1948,6 @@ namespace Baytology.Infrastructure.Data.Migrations
                     b.Navigation("TextSearch");
 
                     b.Navigation("VoiceSearch");
-                });
-
-            modelBuilder.Entity("Baytology.Domain.Conversations.Conversation", b =>
-                {
-                    b.Navigation("Messages");
-                });
-
-            modelBuilder.Entity("Baytology.Domain.Payments.Payment", b =>
-                {
-                    b.Navigation("Transactions");
-                });
-
-            modelBuilder.Entity("Baytology.Domain.Properties.Property", b =>
-                {
-                    b.Navigation("Amenity");
-
-                    b.Navigation("Images");
-                });
-
-            modelBuilder.Entity("Baytology.Domain.Recommendations.RecommendationRequest", b =>
-                {
-                    b.Navigation("Results");
                 });
 #pragma warning restore 612, 618
         }

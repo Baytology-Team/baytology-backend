@@ -1,7 +1,7 @@
 using Baytology.Application.Common.Interfaces;
 using Baytology.Application.Features.Recommendations.EventHandlers;
 using Baytology.Domain.Common.Enums;
-using Baytology.Domain.Recommendations.Events;
+using Baytology.Domain.DomainEvents;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;

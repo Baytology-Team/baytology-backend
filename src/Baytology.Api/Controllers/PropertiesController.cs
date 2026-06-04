@@ -213,6 +213,34 @@ public class PropertiesController(ISender sender) : ApiController
         return result.Match(_ => Ok(), Problem);
     }
 
+    [HttpDelete("{id:guid}/images/{imageId:guid}")]
+    [Authorize(Roles = "Agent")]
+    [EndpointSummary("Delete an image from a property")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> DeleteImage(Guid id, Guid imageId, CancellationToken ct)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+        var command = new Baytology.Application.Features.Properties.Commands.DeletePropertyImage.DeletePropertyImageCommand(id, imageId, userId);
+        var result = await sender.Send(command, ct);
+        return result.Match(_ => Ok(), Problem);
+    }
+
+    [HttpGet("{id:guid}/availability")]
+    [EndpointSummary("Get available time slots for property viewings")]
+    [ProducesResponseType(typeof(List<Baytology.Application.Features.Availability.Queries.GetPropertyAvailability.TimeSlotDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetAvailability(Guid id, [FromQuery] DateTimeOffset startDate, [FromQuery] DateTimeOffset endDate, CancellationToken ct)
+    {
+        var query = new Baytology.Application.Features.Availability.Queries.GetPropertyAvailability.GetPropertyAvailabilityQuery(id, startDate, endDate);
+        var result = await sender.Send(query, ct);
+        return result.Match(Ok, Problem);
+    }
+
     [HttpPost("{id:guid}/save")]
     [Authorize]
     [EndpointSummary("Save property to favorites")]

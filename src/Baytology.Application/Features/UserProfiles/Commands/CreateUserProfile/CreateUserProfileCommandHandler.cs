@@ -1,6 +1,6 @@
 using Baytology.Application.Common.Interfaces;
 using Baytology.Domain.Common.Results;
-using Baytology.Domain.UserProfiles;
+using Baytology.Domain.Entities;
 
 using MediatR;
 
@@ -15,7 +15,7 @@ public class CreateUserProfileCommandHandler(IAppDbContext context)
     {
         var exists = await context.UserProfiles.AnyAsync(p => p.UserId == request.UserId, ct);
         if (exists)
-            return UserProfileErrors.AlreadyExists;
+            return Domain.Exceptions.UserProfileErrors.AlreadyExists;
 
         var profileResult = UserProfile.Create(
             request.UserId,
@@ -40,7 +40,7 @@ public class CreateUserProfileCommandHandler(IAppDbContext context)
                 .AnyAsync(p => p.UserId == request.UserId, ct);
 
             if (duplicateExists)
-                return UserProfileErrors.AlreadyExists;
+                return Domain.Exceptions.UserProfileErrors.AlreadyExists;
 
             throw;
         }

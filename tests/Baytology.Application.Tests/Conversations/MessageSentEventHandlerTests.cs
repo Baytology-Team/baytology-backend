@@ -1,8 +1,8 @@
 using Baytology.Application.Features.Conversations.EventHandlers;
 using Baytology.Application.Tests.Support;
 using Baytology.Application.Common.Interfaces;
-using Baytology.Domain.Conversations;
-using Baytology.Domain.Conversations.Events;
+using Baytology.Domain.Entities;
+using Baytology.Domain.DomainEvents;
 
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -69,7 +69,7 @@ public sealed class MessageSentEventHandlerTests
 
     private sealed class ThrowingNotificationService : INotificationService
     {
-        public Task SendAsync(Baytology.Domain.Notifications.Notification notification, CancellationToken ct = default)
+        public Task SendAsync(Baytology.Domain.Entities.Notification notification, CancellationToken ct = default)
             => throw new InvalidOperationException("Notification persistence is unavailable.");
     }
 

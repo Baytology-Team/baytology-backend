@@ -1,7 +1,7 @@
 using System.IO;
 
 using Baytology.Application.Common.Interfaces;
-using Baytology.Domain.AISearch;
+using Baytology.Domain.ValueObjects;
 using Baytology.Domain.Common.Enums;
 using Baytology.Infrastructure.Settings;
 

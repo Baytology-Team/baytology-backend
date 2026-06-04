@@ -1,5 +1,5 @@
 using Baytology.Application.Common.Interfaces;
-using Baytology.Domain.Notifications;
+using Baytology.Domain.Entities;
 
 namespace Baytology.Application.Tests.Support;
 

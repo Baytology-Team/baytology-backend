@@ -2,8 +2,7 @@ using Baytology.Application.Features.Payments.Commands.ProcessWebhook;
 using Baytology.Application.Tests.Support;
 using Baytology.Application.Common.Interfaces;
 using Baytology.Domain.Common.Enums;
-using Baytology.Domain.Notifications;
-using Baytology.Domain.Payments;
+using Baytology.Domain.Entities;
 
 using Microsoft.Extensions.Logging.Abstractions;
 

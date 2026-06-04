@@ -2,9 +2,9 @@ using System.Net;
 using System.Net.Http.Json;
 
 using Baytology.Api.Tests.Infrastructure;
-using Baytology.Domain.AISearch;
+using Baytology.Domain.ValueObjects;
 using Baytology.Domain.Common.Enums;
-using Baytology.Domain.Properties;
+using Baytology.Domain.Entities;
 using Baytology.Infrastructure.Data;
 
 using Microsoft.Extensions.DependencyInjection;

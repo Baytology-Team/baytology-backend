@@ -1,6 +1,6 @@
 using Baytology.Application.Common.Interfaces;
 using Baytology.Application.Features.AISearch.Commands.CompleteSearchRequest;
-using Baytology.Domain.AISearch.Events;
+using Baytology.Domain.DomainEvents;
 
 using MediatR;
 

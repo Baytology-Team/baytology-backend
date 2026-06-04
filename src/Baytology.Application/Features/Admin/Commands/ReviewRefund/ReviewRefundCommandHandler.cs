@@ -1,8 +1,7 @@
 using Baytology.Application.Common.Interfaces;
 using Baytology.Domain.Common.Enums;
 using Baytology.Domain.Common.Results;
-using Baytology.Domain.Notifications;
-using Baytology.Domain.Payments;
+using Baytology.Domain.Entities;
 
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -22,7 +21,7 @@ public class ReviewRefundCommandHandler(IAppDbContext context, INotificationServ
 
         var payment = await context.Payments.FirstOrDefaultAsync(p => p.Id == refund.PaymentId, ct);
         if (payment is null)
-            return PaymentErrors.NotFound;
+            return Domain.Exceptions.PaymentErrors.NotFound;
 
         if (request.Approve)
         {

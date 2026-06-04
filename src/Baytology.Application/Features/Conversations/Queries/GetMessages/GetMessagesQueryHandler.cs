@@ -17,10 +17,10 @@ public class GetMessagesQueryHandler(IAppDbContext context)
             .FirstOrDefaultAsync(c => c.Id == request.ConversationId, ct);
 
         if (conversation is null)
-            return Domain.Conversations.ConversationErrors.NotFound;
+            return Domain.Exceptions.ConversationErrors.NotFound;
 
         if (conversation.BuyerUserId != request.UserId && conversation.AgentUserId != request.UserId)
-            return Domain.Conversations.ConversationErrors.Unauthorized;
+            return Domain.Exceptions.ConversationErrors.Unauthorized;
 
         var messages = await context.Messages
             .AsNoTracking()

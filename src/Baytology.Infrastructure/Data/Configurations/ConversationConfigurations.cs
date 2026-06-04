@@ -1,5 +1,4 @@
-using Baytology.Domain.Conversations;
-using Baytology.Domain.Properties;
+using Baytology.Domain.Entities;
 using Baytology.Infrastructure.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;

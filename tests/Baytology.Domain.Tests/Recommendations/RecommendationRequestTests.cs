@@ -1,6 +1,6 @@
 using Baytology.Domain.Common.Enums;
-using Baytology.Domain.Recommendations;
-using Baytology.Domain.Recommendations.Events;
+using Baytology.Domain.ValueObjects;
+using Baytology.Domain.DomainEvents;
 
 namespace Baytology.Domain.Tests.Recommendations;
 

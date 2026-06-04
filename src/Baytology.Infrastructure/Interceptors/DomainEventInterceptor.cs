@@ -1,10 +1,7 @@
 using System.Text.Json;
 
-using Baytology.Domain.AISearch.Events;
-using Baytology.Domain.Common;
 using Baytology.Domain.DomainEvents;
-using Baytology.Domain.Properties.Events;
-using Baytology.Domain.Recommendations.Events;
+using Baytology.Domain.Common;
 using Baytology.Infrastructure.Data;
 
 using MediatR;

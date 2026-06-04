@@ -1,4 +1,4 @@
-using Baytology.Domain.Notifications;
+using Baytology.Domain.Entities;
 
 namespace Baytology.Application.Common.Interfaces;
 

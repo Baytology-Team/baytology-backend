@@ -1,6 +1,6 @@
 using Baytology.Application.Common.Interfaces;
 using Baytology.Application.Features.Recommendations.Commands.CompleteRecommendationRequest;
-using Baytology.Domain.Recommendations.Events;
+using Baytology.Domain.DomainEvents;
 
 using MediatR;
 

@@ -1,5 +1,5 @@
 using Baytology.Domain.Common.Enums;
-using Baytology.Domain.Payments;
+using Baytology.Domain.Entities;
 
 namespace Baytology.Domain.Tests.Payments;
 

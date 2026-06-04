@@ -1,5 +1,5 @@
-using Baytology.Domain.Properties;
-using Baytology.Domain.Recommendations;
+using Baytology.Domain.Entities;
+using Baytology.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

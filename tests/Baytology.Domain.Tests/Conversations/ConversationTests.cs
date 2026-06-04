@@ -1,4 +1,4 @@
-using Baytology.Domain.Conversations;
+using Baytology.Domain.Entities;
 
 namespace Baytology.Domain.Tests.Conversations;
 

@@ -1,9 +1,7 @@
 using Baytology.Application.Features.Conversations.Commands.CreateConversation;
 using Baytology.Application.Tests.Support;
-using Baytology.Domain.AgentDetails;
+using Baytology.Domain.Entities;
 using Baytology.Domain.Common.Enums;
-using Baytology.Domain.Conversations;
-using Baytology.Domain.Properties;
 
 namespace Baytology.Application.Tests.Conversations;
 

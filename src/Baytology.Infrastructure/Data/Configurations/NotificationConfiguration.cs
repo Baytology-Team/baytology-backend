@@ -1,4 +1,4 @@
-using Baytology.Domain.Notifications;
+using Baytology.Domain.Entities;
 using Baytology.Infrastructure.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;

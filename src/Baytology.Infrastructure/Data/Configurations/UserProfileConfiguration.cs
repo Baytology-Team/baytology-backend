@@ -1,4 +1,4 @@
-using Baytology.Domain.UserProfiles;
+using Baytology.Domain.Entities;
 using Baytology.Infrastructure.Identity;
 
 using Microsoft.EntityFrameworkCore;

@@ -1,6 +1,6 @@
 using Baytology.Application.Common.Interfaces;
 using Baytology.Domain.Common.Results;
-using Baytology.Domain.Properties;
+using Baytology.Domain.Entities;
 
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -16,7 +16,7 @@ public class RecordPropertyViewCommandHandler(IAppDbContext context)
             .AnyAsync(p => p.Id == request.PropertyId, ct);
 
         if (!propertyExists)
-            return PropertyErrors.NotFound;
+            return Domain.Exceptions.PropertyErrors.NotFound;
 
         var viewResult = PropertyView.Create(request.PropertyId, request.UserId, request.IpAddress);
         if (viewResult.IsError)

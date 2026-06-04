@@ -1,6 +1,5 @@
 using Baytology.Domain.Common.Enums;
-using Baytology.Domain.AgentDetails;
-using Baytology.Domain.Identity;
+using Baytology.Domain.Entities;
 using Baytology.Infrastructure.Identity;
 using Baytology.Infrastructure.Settings;
 

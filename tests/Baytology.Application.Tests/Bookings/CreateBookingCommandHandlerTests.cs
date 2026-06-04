@@ -1,12 +1,9 @@
 using Baytology.Application.Common.Interfaces;
 using Baytology.Application.Features.Bookings.Commands.CreateBooking;
 using Baytology.Application.Tests.Support;
-using Baytology.Domain.AgentDetails;
-using Baytology.Domain.Bookings;
+using Baytology.Domain.Entities;
 using Baytology.Domain.Common.Enums;
 using Baytology.Domain.Common.Results;
-using Baytology.Domain.Payments;
-using Baytology.Domain.Properties;
 
 namespace Baytology.Application.Tests.Bookings;
 

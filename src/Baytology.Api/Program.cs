@@ -42,6 +42,8 @@ app.UseCoreMiddlewares(builder.Configuration);
 
 app.MapControllers();
 
+app.MapHealthChecks("/health");
+
 app.MapHub<NotificationHub>("/hubs/notifications");
 app.MapHub<ChatHub>("/hubs/chat");
 

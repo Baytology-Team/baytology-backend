@@ -1,12 +1,9 @@
 using Baytology.Application.Common.Interfaces;
 using Baytology.Application.Features.Bookings.EventHandlers;
 using Baytology.Application.Tests.Support;
-using Baytology.Domain.Bookings;
+using Baytology.Domain.Entities;
 using Baytology.Domain.Common.Enums;
-using Baytology.Domain.Notifications;
-using Baytology.Domain.Payments;
-using Baytology.Domain.Payments.Events;
-using Baytology.Domain.Properties;
+using Baytology.Domain.DomainEvents;
 
 using Microsoft.Extensions.Logging.Abstractions;
 

@@ -1,6 +1,6 @@
 using Baytology.Application.Common.Interfaces;
 using Baytology.Domain.Common.Results;
-using Baytology.Domain.Properties;
+using Baytology.Domain.Entities;
 
 using MediatR;
 
@@ -18,7 +18,7 @@ public class GetPropertySavedStateQueryHandler(IAppDbContext context)
             .AnyAsync(property => property.Id == request.PropertyId, ct);
 
         if (!propertyExists)
-            return PropertyErrors.NotFound;
+            return Domain.Exceptions.PropertyErrors.NotFound;
 
         var isSaved = await context.SavedProperties
             .AsNoTracking()

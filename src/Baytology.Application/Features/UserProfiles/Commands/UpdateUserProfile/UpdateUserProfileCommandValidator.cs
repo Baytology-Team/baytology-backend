@@ -10,6 +10,9 @@ public class UpdateUserProfileCommandValidator : AbstractValidator<UpdateUserPro
         RuleFor(x => x.DisplayName).NotEmpty().MaximumLength(200);
         RuleFor(x => x.AvatarUrl).MaximumLength(500);
         RuleFor(x => x.Bio).MaximumLength(2000);
-        RuleFor(x => x.PhoneNumber).MaximumLength(20);
+        RuleFor(x => x.PhoneNumber)
+            .MaximumLength(20)
+            .Matches(@"^\+?[0-9]{10,15}$").WithMessage("Phone number format is invalid.")
+            .When(x => !string.IsNullOrWhiteSpace(x.PhoneNumber));
     }
 }

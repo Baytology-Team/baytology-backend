@@ -1,7 +1,7 @@
 using Baytology.Application.Common.Caching;
 using Baytology.Application.Features.Properties.Dtos;
 using Baytology.Domain.Common.Results;
-using Baytology.Domain.Properties;
+using Baytology.Domain.Entities;
 
 using MediatR;
 

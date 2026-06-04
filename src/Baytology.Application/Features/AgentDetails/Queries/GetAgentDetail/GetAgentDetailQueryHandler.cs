@@ -15,14 +15,14 @@ public class GetAgentDetailQueryHandler(IAppDbContext context, IIdentityService 
     public async Task<Result<AgentDetailDto>> Handle(GetAgentDetailQuery request, CancellationToken ct)
     {
         if (!await identityService.IsInRoleAsync(request.UserId, "Agent"))
-            return Domain.AgentDetails.AgentDetailErrors.NotFound;
+            return Domain.Exceptions.AgentDetailErrors.NotFound;
 
         var agent = await context.AgentDetails
             .AsNoTracking()
             .FirstOrDefaultAsync(a => a.UserId == request.UserId, ct);
 
         if (agent is null)
-            return Domain.AgentDetails.AgentDetailErrors.NotFound;
+            return Domain.Exceptions.AgentDetailErrors.NotFound;
 
         var profile = await context.UserProfiles
             .AsNoTracking()

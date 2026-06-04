@@ -1,4 +1,4 @@
-using Baytology.Domain.Properties;
+using Baytology.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

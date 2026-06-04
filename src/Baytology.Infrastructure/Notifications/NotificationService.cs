@@ -1,5 +1,5 @@
 using Baytology.Application.Common.Interfaces;
-using Baytology.Domain.Notifications;
+using Baytology.Domain.Entities;
 using Baytology.Infrastructure.Data;
 using Baytology.Infrastructure.RealTime;
 

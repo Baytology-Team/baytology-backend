@@ -1,4 +1,4 @@
-using Baytology.Domain.AgentDetails;
+using Baytology.Domain.Entities;
 
 namespace Baytology.Domain.Tests.AgentDetails;
 
@@ -10,7 +10,7 @@ public sealed class AgentDetailTests
         var result = AgentDetail.Create("");
 
         Assert.True(result.IsError);
-        Assert.Equal(AgentDetailErrors.UserIdRequired, result.TopError);
+        Assert.Equal(Domain.Exceptions.AgentDetailErrors.UserIdRequired, result.TopError);
     }
 
     [Fact]

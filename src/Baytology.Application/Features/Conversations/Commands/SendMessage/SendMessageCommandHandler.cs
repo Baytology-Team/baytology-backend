@@ -1,6 +1,6 @@
 using Baytology.Application.Common.Interfaces;
 using Baytology.Domain.Common.Results;
-using Baytology.Domain.Conversations;
+using Baytology.Domain.Entities;
 
 using MediatR;
 
@@ -16,7 +16,7 @@ public class SendMessageCommandHandler(IAppDbContext context)
         var conversation = await context.Conversations.FindAsync([request.ConversationId], ct);
 
         if (conversation is null)
-            return ConversationErrors.NotFound;
+            return Domain.Exceptions.ConversationErrors.NotFound;
 
         var messageResult = conversation.SendMessage(request.SenderId, request.Content, request.AttachmentUrl);
         if (messageResult.IsError)

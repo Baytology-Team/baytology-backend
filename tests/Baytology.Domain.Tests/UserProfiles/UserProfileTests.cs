@@ -1,5 +1,5 @@
 using Baytology.Domain.Common.Enums;
-using Baytology.Domain.UserProfiles;
+using Baytology.Domain.Entities;
 
 namespace Baytology.Domain.Tests.UserProfiles;
 
@@ -11,7 +11,7 @@ public sealed class UserProfileTests
         var result = UserProfile.Create("user-1", "");
 
         Assert.True(result.IsError);
-        Assert.Equal(UserProfileErrors.DisplayNameRequired, result.TopError);
+        Assert.Equal(Domain.Exceptions.UserProfileErrors.DisplayNameRequired, result.TopError);
     }
 
     [Fact]

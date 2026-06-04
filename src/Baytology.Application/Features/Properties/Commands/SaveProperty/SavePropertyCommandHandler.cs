@@ -1,7 +1,7 @@
 using Baytology.Application.Common.Caching;
 using Baytology.Application.Common.Interfaces;
 using Baytology.Domain.Common.Results;
-using Baytology.Domain.Properties;
+using Baytology.Domain.Entities;
 
 using MediatR;
 
@@ -18,13 +18,13 @@ public class SavePropertyCommandHandler(IAppDbContext context)
             .AnyAsync(p => p.Id == request.PropertyId, ct);
 
         if (!propertyExists)
-            return PropertyErrors.NotFound;
+            return Domain.Exceptions.PropertyErrors.NotFound;
 
         var exists = await context.SavedProperties
             .AnyAsync(s => s.UserId == request.UserId && s.PropertyId == request.PropertyId, ct);
 
         if (exists)
-            return PropertyErrors.AlreadySaved;
+            return Domain.Exceptions.PropertyErrors.AlreadySaved;
 
         var savedResult = SavedProperty.Create(request.UserId, request.PropertyId);
         if (savedResult.IsError)
@@ -43,7 +43,7 @@ public class SavePropertyCommandHandler(IAppDbContext context)
                 .AnyAsync(s => s.UserId == request.UserId && s.PropertyId == request.PropertyId, ct);
 
             if (duplicateExists)
-                return PropertyErrors.AlreadySaved;
+                return Domain.Exceptions.PropertyErrors.AlreadySaved;
 
             throw;
         }
