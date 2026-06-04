@@ -1,7 +1,7 @@
 using Baytology.Application.Common.Interfaces;
 using Baytology.Domain.Common.Enums;
 using Baytology.Domain.Common.Results;
-using Baytology.Domain.AISearch;
+using Baytology.Domain.ValueObjects;
 
 using MediatR;
 

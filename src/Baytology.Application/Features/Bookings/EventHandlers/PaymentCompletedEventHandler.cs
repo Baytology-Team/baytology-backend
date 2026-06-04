@@ -1,8 +1,7 @@
 using Baytology.Application.Common.Interfaces;
-using Baytology.Domain.Bookings;
+using Baytology.Domain.Entities;
 using Baytology.Domain.Common.Enums;
-using Baytology.Domain.Notifications;
-using Baytology.Domain.Payments.Events;
+using Baytology.Domain.DomainEvents;
 
 using MediatR;
 

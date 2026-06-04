@@ -2,7 +2,7 @@ using Baytology.Application.Common.Caching;
 using Baytology.Application.Common.Interfaces;
 using Baytology.Application.Features.Properties.Dtos;
 using Baytology.Domain.Common.Results;
-using Baytology.Domain.Properties;
+using Baytology.Domain.Entities;
 
 using MediatR;
 
@@ -22,7 +22,7 @@ public class GetPropertyByIdQueryHandler(IAppDbContext context)
             .FirstOrDefaultAsync(p => p.Id == request.Id, ct);
 
         if (property is null)
-            return PropertyErrors.NotFound;
+            return Domain.Exceptions.PropertyErrors.NotFound;
 
         var agentProfile = await context.UserProfiles
             .AsNoTracking()

@@ -28,7 +28,7 @@ public sealed class GetRecommendationRequestsQueryHandler(IAppDbContext context)
                 recommendationRequest.ResolvedAt,
                 context.DomainEventLogs.Count(log =>
                     log.AggregateId == recommendationRequest.Id.ToString() &&
-                    log.AggregateType == nameof(Baytology.Domain.Recommendations.RecommendationRequest))));
+                    log.AggregateType == nameof(Baytology.Domain.ValueObjects.RecommendationRequest))));
 
         return await PaginatedList<RecommendationRequestAdminDto>.CreateAsync(query, request.PageNumber, request.PageSize, ct);
     }

@@ -31,10 +31,10 @@ public class UpdatePropertyCommandHandler(IAppDbContext context)
         if (updateResult.IsError)
             return updateResult.Errors;
 
-        Domain.Properties.PropertyAmenity amenity;
+        Domain.Entities.PropertyAmenity amenity;
         if (property.Amenity is null)
         {
-            var amenityResult = Domain.Properties.PropertyAmenity.Create(property.Id);
+            var amenityResult = Domain.Entities.PropertyAmenity.Create(property.Id);
             if (amenityResult.IsError)
                 return amenityResult.Errors;
 

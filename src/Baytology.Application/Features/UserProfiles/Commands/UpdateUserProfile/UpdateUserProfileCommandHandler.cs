@@ -18,7 +18,7 @@ public class UpdateUserProfileCommandHandler(IAppDbContext context)
             .FirstOrDefaultAsync(p => p.UserId == request.UserId, ct);
 
         if (profile is null)
-            return Domain.UserProfiles.UserProfileErrors.NotFound;
+            return Domain.Exceptions.UserProfileErrors.NotFound;
 
         var updateResult = profile.Update(
             request.DisplayName,

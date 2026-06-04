@@ -7,7 +7,7 @@ using Baytology.Application.Common.Interfaces;
 using Baytology.Application.Features.Identity;
 using Baytology.Application.Features.Identity.Dtos;
 using Baytology.Domain.Common.Results;
-using Baytology.Domain.Identity;
+using Baytology.Domain.Entities;
 using Baytology.Infrastructure.Settings;
 
 using Microsoft.EntityFrameworkCore;

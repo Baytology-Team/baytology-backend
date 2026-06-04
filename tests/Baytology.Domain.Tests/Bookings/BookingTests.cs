@@ -1,4 +1,4 @@
-using Baytology.Domain.Bookings;
+using Baytology.Domain.Entities;
 using Baytology.Domain.Common.Enums;
 
 namespace Baytology.Domain.Tests.Bookings;
@@ -16,7 +16,7 @@ public sealed class BookingTests
             DateTimeOffset.UtcNow.AddDays(1));
 
         Assert.True(result.IsError);
-        Assert.Equal(BookingErrors.StartDateInvalid.Code, result.TopError.Code);
+        Assert.Equal(Domain.Exceptions.BookingErrors.StartDateInvalid.Code, result.TopError.Code);
     }
 
     [Fact]
@@ -30,7 +30,7 @@ public sealed class BookingTests
             DateTimeOffset.UtcNow.AddDays(1));
 
         Assert.True(result.IsError);
-        Assert.Equal(BookingErrors.StartDateInvalid.Code, result.TopError.Code);
+        Assert.Equal(Domain.Exceptions.BookingErrors.StartDateInvalid.Code, result.TopError.Code);
     }
 
     [Fact]

@@ -1,7 +1,5 @@
-using Baytology.Domain.AgentDetails;
+using Baytology.Domain.Entities;
 using Baytology.Domain.Common.Results;
-using Baytology.Domain.Payments;
-using Baytology.Domain.Properties;
 
 namespace Baytology.Application.Common.Errors;
 
@@ -50,7 +48,7 @@ public static class ApplicationErrors
 
     public static class AgentDetails
     {
-        public static readonly Error NotFound = AgentDetailErrors.NotFound;
+        public static readonly Error NotFound = Domain.Exceptions.AgentDetailErrors.NotFound;
 
         public static readonly Error InvalidCommissionRate =
             Error.Validation("AgentDetail.CommissionRate", "Commission rate must be greater than 0 and less than 1.");
@@ -149,7 +147,7 @@ public static class ApplicationErrors
 
     public static class Property
     {
-        public static readonly Error NotFound = PropertyErrors.NotFound;
+        public static readonly Error NotFound = Domain.Exceptions.PropertyErrors.NotFound;
 
         public static readonly Error AccessDenied =
             Error.Forbidden("Property_Access_Denied", "You don't own this property.");
@@ -269,7 +267,7 @@ public static class ApplicationErrors
 
     public static class Payment
     {
-        public static readonly Error NotFound = PaymentErrors.NotFound;
+        public static readonly Error NotFound = Domain.Exceptions.PaymentErrors.NotFound;
     }
 
     public static class Paymob

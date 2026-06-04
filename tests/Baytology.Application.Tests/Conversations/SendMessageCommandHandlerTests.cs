@@ -1,6 +1,6 @@
 using Baytology.Application.Features.Conversations.Commands.SendMessage;
 using Baytology.Application.Tests.Support;
-using Baytology.Domain.Conversations;
+using Baytology.Domain.Entities;
 
 namespace Baytology.Application.Tests.Conversations;
 

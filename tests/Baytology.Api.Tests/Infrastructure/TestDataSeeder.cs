@@ -1,16 +1,8 @@
-using Baytology.Domain.AgentDetails;
-using Baytology.Domain.AISearch;
+using Baytology.Domain.Entities;
+using Baytology.Domain.ValueObjects;
 using Baytology.Domain.AuditLogs;
-using Baytology.Domain.Bookings;
 using Baytology.Domain.Common.Enums;
-using Baytology.Domain.Conversations;
 using Baytology.Domain.DomainEvents;
-using Baytology.Domain.Identity;
-using Baytology.Domain.Notifications;
-using Baytology.Domain.Payments;
-using Baytology.Domain.Properties;
-using Baytology.Domain.Recommendations;
-using Baytology.Domain.UserProfiles;
 using Baytology.Infrastructure.Data;
 using Baytology.Infrastructure.Identity;
 

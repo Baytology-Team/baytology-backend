@@ -1,6 +1,6 @@
 using Baytology.Application.Common.Interfaces;
 using Baytology.Domain.Common.Results;
-using Baytology.Domain.Recommendations;
+using Baytology.Domain.ValueObjects;
 
 using MediatR;
 

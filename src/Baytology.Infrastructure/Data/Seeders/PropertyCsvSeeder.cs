@@ -2,8 +2,7 @@ using System.Globalization;
 using System.Text.Json;
 
 using Baytology.Domain.Common.Enums;
-using Baytology.Domain.Identity;
-using Baytology.Domain.Properties;
+using Baytology.Domain.Entities;
 using Baytology.Infrastructure.Identity;
 
 using CsvHelper;

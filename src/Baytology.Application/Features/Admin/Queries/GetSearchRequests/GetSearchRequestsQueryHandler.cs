@@ -28,7 +28,7 @@ public sealed class GetSearchRequestsQueryHandler(IAppDbContext context)
                 searchRequest.ResolvedAt,
                 context.DomainEventLogs.Count(log =>
                     log.AggregateId == searchRequest.Id.ToString() &&
-                    log.AggregateType == nameof(Baytology.Domain.AISearch.SearchRequest))));
+                    log.AggregateType == nameof(Baytology.Domain.ValueObjects.SearchRequest))));
 
         return await PaginatedList<SearchRequestAdminDto>.CreateAsync(query, request.PageNumber, request.PageSize, ct);
     }

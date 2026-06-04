@@ -6,13 +6,11 @@ obj/
 artifacts/
 logs/
 runtime-logs/
-temp/
 
 **/bin/
 **/obj/
 **/artifacts/
 **/logs/
-**/temp/
 
 .vs/
 .vscode/
@@ -36,14 +34,8 @@ __pycache__/
 dist/
 build/
 
-# Environment files contain secrets
-.env
-.env.*
-!.env.example
+# Environment files (contain secrets)
 **/.env
-*.pfx
-*.pem
-*.key
 
 # =========================
 # Large / Generated files
@@ -55,7 +47,10 @@ build/
 *.zip
 *.faiss
 
+# FAISS index (binary, regenerated)
 faiss_index.bin
+
+# Image datasets (too large for git, downloadable)
 Search_By_Image/images/
 Search_By_Image/data/
 
@@ -77,6 +72,14 @@ frontend/temp_*.ts
 temp_*.wav
 test_*.json
 *.tmp
+
+# Local-only configuration and credentials
+.env
+.env.*
+!.env.example
+*.pfx
+*.pem
+*.key
 
 # =========================
 # OS / IDE

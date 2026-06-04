@@ -1,6 +1,6 @@
 using Baytology.Application.Common.Interfaces;
 using Baytology.Domain.Common.Results;
-using Baytology.Domain.Payments;
+using Baytology.Domain.Entities;
 
 using MediatR;
 using Microsoft.EntityFrameworkCore;

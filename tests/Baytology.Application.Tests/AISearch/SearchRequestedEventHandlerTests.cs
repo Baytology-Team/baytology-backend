@@ -1,6 +1,6 @@
 using Baytology.Application.Common.Interfaces;
 using Baytology.Application.Features.AISearch.EventHandlers;
-using Baytology.Domain.AISearch.Events;
+using Baytology.Domain.DomainEvents;
 using Baytology.Domain.Common.Enums;
 
 using Microsoft.Extensions.DependencyInjection;

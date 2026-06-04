@@ -1,7 +1,7 @@
 using Baytology.Application.Features.Properties.Commands.SaveProperty;
 using Baytology.Application.Tests.Support;
 using Baytology.Domain.Common.Enums;
-using Baytology.Domain.Properties;
+using Baytology.Domain.Entities;
 
 namespace Baytology.Application.Tests.Properties;
 

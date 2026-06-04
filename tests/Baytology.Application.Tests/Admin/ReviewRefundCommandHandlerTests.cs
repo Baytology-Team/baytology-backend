@@ -1,7 +1,7 @@
 using Baytology.Application.Features.Admin.Commands.ReviewRefund;
 using Baytology.Application.Tests.Support;
 using Baytology.Domain.Common.Enums;
-using Baytology.Domain.Payments;
+using Baytology.Domain.Entities;
 
 namespace Baytology.Application.Tests.Admin;
 

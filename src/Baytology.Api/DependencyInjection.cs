@@ -13,6 +13,9 @@ using Microsoft.AspNetCore.RateLimiting;
 
 using Serilog;
 
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Trace;
+
 namespace Microsoft.Extensions.DependencyInjection;
 
 public static class PresentationDependencyInjection
@@ -34,11 +37,35 @@ public static class PresentationDependencyInjection
                 .AddIdentityInfrastructure()
                 .AddAppRateLimiting()
                 .AddAppOutputCaching()
+                .AddObservability(configuration)
+                .AddAppHealthChecks(configuration)
                 .AddSignalR();
 
         return services;
     }
 
+    private static IServiceCollection AddAppHealthChecks(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddHealthChecks()
+            .AddSqlServer(configuration.GetConnectionString("DefaultConnection")!);
+
+        return services;
+    }
+
+    private static IServiceCollection AddObservability(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddOpenTelemetry()
+            .WithMetrics(metrics => metrics
+                .AddAspNetCoreInstrumentation()
+                .AddHttpClientInstrumentation()
+                .AddRuntimeInstrumentation())
+            .WithTracing(tracing => tracing
+                .AddAspNetCoreInstrumentation()
+                .AddHttpClientInstrumentation()
+                .AddSqlClientInstrumentation());
+
+        return services;
+    }
     public static IServiceCollection AddAppOutputCaching(this IServiceCollection services)
     {
         services.AddOutputCache(options =>
@@ -187,6 +214,7 @@ public static class PresentationDependencyInjection
 
         return services;
     }
+
 
     public static IApplicationBuilder UseCoreMiddlewares(this IApplicationBuilder app, IConfiguration configuration)
     {

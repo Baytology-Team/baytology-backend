@@ -2,12 +2,9 @@ using System.Data;
 
 using Baytology.Application.Common.Interfaces;
 using Baytology.Domain.Common.Constants;
-using Baytology.Domain.Bookings;
+using Baytology.Domain.Entities;
 using Baytology.Domain.Common.Enums;
 using Baytology.Domain.Common.Results;
-using Baytology.Domain.Notifications;
-using Baytology.Domain.Payments;
-using Baytology.Domain.Properties;
 
 using MediatR;
 
@@ -25,11 +22,11 @@ public class CreateBookingCommandHandler(
 {
     public async Task<Result<CreateBookingResponse>> Handle(CreateBookingCommand request, CancellationToken ct)
     {
-        Domain.Properties.Property property = null!;
+        Domain.Entities.Property property = null!;
         Booking booking = null!;
         Payment payment = null!;
 
-        async Task<Result<(Domain.Properties.Property Property, Booking Booking, Payment Payment)>> PersistPendingBookingAsync()
+        async Task<Result<(Domain.Entities.Property Property, Booking Booking, Payment Payment)>> PersistPendingBookingAsync()
         {
             IDbContextTransaction? transaction = null;
 
@@ -46,7 +43,7 @@ public class CreateBookingCommandHandler(
                 if (loadedProperty is null)
                 {
                     await RollbackAsync(transaction, ct);
-                    return PropertyErrors.NotFound;
+                    return Domain.Exceptions.PropertyErrors.NotFound;
                 }
 
                 var loadedBookingProperty = loadedProperty;

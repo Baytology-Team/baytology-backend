@@ -1,7 +1,6 @@
 using Baytology.Application.Common.Interfaces;
-using Baytology.Domain.AgentDetails;
+using Baytology.Domain.Entities;
 using Baytology.Domain.Common.Results;
-using Baytology.Domain.UserProfiles;
 
 using MediatR;
 using Microsoft.Extensions.Logging;

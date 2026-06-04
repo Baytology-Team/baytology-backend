@@ -112,6 +112,7 @@ public class ApiTestWebApplicationFactory : WebApplicationFactory<Program>, IAsy
             ["RabbitMq:UserName"] = "guest",
             ["RabbitMq:Password"] = "guest",
             ["RabbitMq:Enabled"] = "false",
+            ["Paymob:ApiKey"] = "api-key",
             ["Paymob:SecretKey"] = "secret-key",
             ["Paymob:PublicKey"] = "public-key",
             ["Paymob:IntegrationId"] = "123456",
@@ -170,6 +171,7 @@ public class ApiTestWebApplicationFactory : WebApplicationFactory<Program>, IAsy
         Environment.SetEnvironmentVariable("RabbitMq__UserName", "guest");
         Environment.SetEnvironmentVariable("RabbitMq__Password", "guest");
         Environment.SetEnvironmentVariable("RabbitMq__Enabled", "false");
+        Environment.SetEnvironmentVariable("Paymob__ApiKey", "api-key");
         Environment.SetEnvironmentVariable("Paymob__SecretKey", "secret-key");
         Environment.SetEnvironmentVariable("Paymob__PublicKey", "public-key");
         Environment.SetEnvironmentVariable("Paymob__IntegrationId", "123456");

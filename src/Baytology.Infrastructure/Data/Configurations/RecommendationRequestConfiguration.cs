@@ -1,4 +1,4 @@
-using Baytology.Domain.Recommendations;
+using Baytology.Domain.ValueObjects;
 using Baytology.Infrastructure.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;

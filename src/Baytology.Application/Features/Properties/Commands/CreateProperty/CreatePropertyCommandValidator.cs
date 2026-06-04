@@ -17,6 +17,9 @@ public class CreatePropertyCommandValidator : AbstractValidator<CreatePropertyCo
         RuleFor(x => x)
             .Must(x => !x.Floor.HasValue || !x.TotalFloors.HasValue || x.Floor.Value <= x.TotalFloors.Value)
             .WithMessage("Floor cannot exceed total floors.");
-        RuleForEach(x => x.ImageUrls).NotEmpty().MaximumLength(1000);
+        RuleFor(x => x.ImageUrls)
+            .NotEmpty().WithMessage("At least one property image is required.")
+            .Must(urls => urls != null && urls.All(u => !string.IsNullOrWhiteSpace(u) && u.Length <= 1000))
+            .WithMessage("Image URLs cannot be empty or exceed 1000 characters.");
     }
 }

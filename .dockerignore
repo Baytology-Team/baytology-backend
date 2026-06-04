@@ -1,0 +1,9 @@
+**
+!docker/
+!docker/**
+!Baytology-chatbot-system/
+!Baytology-chatbot-system/requirements.docker.txt
+!Baytology-feat-recommendation-system/
+!Baytology-feat-recommendation-system/requirements.txt
+!Search_By_Image/
+!Search_By_Image/requirements.txt

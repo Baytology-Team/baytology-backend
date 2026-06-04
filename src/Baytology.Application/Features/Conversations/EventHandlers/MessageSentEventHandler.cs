@@ -1,7 +1,7 @@
 using Baytology.Application.Common.Interfaces;
 using Baytology.Domain.Common.Enums;
-using Baytology.Domain.Conversations.Events;
-using Baytology.Domain.Notifications;
+using Baytology.Domain.DomainEvents;
+using Baytology.Domain.Entities;
 
 using MediatR;
 

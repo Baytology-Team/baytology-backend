@@ -2,7 +2,7 @@ using Baytology.Application.Common.Caching;
 using Baytology.Application.Common.Interfaces;
 using Baytology.Application.Features.UserProfiles.Dtos;
 using Baytology.Domain.Common.Results;
-using Baytology.Domain.UserProfiles;
+using Baytology.Domain.Entities;
 
 using MediatR;
 
@@ -20,7 +20,7 @@ public class GetUserProfileQueryHandler(IAppDbContext context)
             .FirstOrDefaultAsync(p => p.UserId == request.UserId, ct);
 
         if (profile is null)
-            return UserProfileErrors.NotFound;
+            return Domain.Exceptions.UserProfileErrors.NotFound;
 
         return new UserProfileDto(
             profile.Id,

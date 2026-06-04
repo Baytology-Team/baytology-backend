@@ -1,6 +1,6 @@
 using Baytology.Application.Common.Interfaces;
 using Baytology.Domain.Common.Results;
-using Baytology.Domain.Properties;
+using Baytology.Domain.Entities;
 
 using MediatR;
 
@@ -17,7 +17,7 @@ public class UnsavePropertyCommandHandler(IAppDbContext context)
             .FirstOrDefaultAsync(saved => saved.UserId == request.UserId && saved.PropertyId == request.PropertyId, ct);
 
         if (savedProperty is null)
-            return PropertyErrors.NotSaved;
+            return Domain.Exceptions.PropertyErrors.NotSaved;
 
         context.SavedProperties.Remove(savedProperty);
         await context.SaveChangesAsync(ct);

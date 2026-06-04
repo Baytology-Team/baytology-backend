@@ -1,5 +1,5 @@
-using Baytology.Domain.AISearch;
-using Baytology.Domain.AISearch.Events;
+using Baytology.Domain.ValueObjects;
+using Baytology.Domain.DomainEvents;
 using Baytology.Domain.Common.Enums;
 
 namespace Baytology.Domain.Tests.AISearch;

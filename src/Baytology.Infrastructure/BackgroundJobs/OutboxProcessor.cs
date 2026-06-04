@@ -1,14 +1,11 @@
 using System.Text.Json;
 
 using Baytology.Application.Common.Interfaces;
-using Baytology.Domain.AISearch.Events;
-using Baytology.Domain.AISearch;
 using Baytology.Domain.DomainEvents;
-using Baytology.Domain.Properties.Events;
-using Baytology.Domain.Properties;
+using Baytology.Domain.ValueObjects;
+using Baytology.Domain.Entities;
 using Baytology.Infrastructure.Data;
 using Baytology.Infrastructure.Settings;
-using Baytology.Domain.Recommendations.Events;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;

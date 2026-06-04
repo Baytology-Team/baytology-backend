@@ -2,7 +2,7 @@ using Baytology.Application.Common.Caching;
 using Baytology.Application.Common.Interfaces;
 using Baytology.Domain.Common.Enums;
 using Baytology.Domain.Common.Results;
-using Baytology.Domain.Recommendations;
+using Baytology.Domain.ValueObjects;
 
 using MediatR;
 

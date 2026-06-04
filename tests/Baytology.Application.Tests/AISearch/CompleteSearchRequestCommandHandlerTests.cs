@@ -1,8 +1,8 @@
 using Baytology.Application.Features.AISearch.Commands.CompleteSearchRequest;
 using Baytology.Application.Tests.Support;
-using Baytology.Domain.AISearch;
+using Baytology.Domain.ValueObjects;
 using Baytology.Domain.Common.Enums;
-using Baytology.Domain.Properties;
+using Baytology.Domain.Entities;
 
 using Microsoft.EntityFrameworkCore;
 

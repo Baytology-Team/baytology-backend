@@ -1,6 +1,6 @@
 using Baytology.Domain.Common.Enums;
-using Baytology.Domain.Properties;
-using Baytology.Domain.Properties.Events;
+using Baytology.Domain.Entities;
+using Baytology.Domain.DomainEvents;
 
 namespace Baytology.Domain.Tests.Properties;
 

@@ -1,5 +1,5 @@
-using Baytology.Domain.Conversations;
-using Baytology.Domain.Conversations.Events;
+using Baytology.Domain.Entities;
+using Baytology.Domain.DomainEvents;
 
 namespace Baytology.Domain.Tests.Conversations;
 

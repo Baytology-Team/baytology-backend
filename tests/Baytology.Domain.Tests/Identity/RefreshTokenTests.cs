@@ -1,4 +1,4 @@
-using Baytology.Domain.Identity;
+using Baytology.Domain.Entities;
 
 namespace Baytology.Domain.Tests.Identity;
 
@@ -10,7 +10,7 @@ public sealed class RefreshTokenTests
         var result = RefreshToken.Create(Guid.NewGuid(), "refresh-token", "user-1", DateTimeOffset.UtcNow);
 
         Assert.True(result.IsError);
-        Assert.Equal(RefreshTokenErrors.ExpiryInvalid, result.TopError);
+        Assert.Equal(Domain.Exceptions.RefreshTokenErrors.ExpiryInvalid, result.TopError);
     }
 
     [Fact]

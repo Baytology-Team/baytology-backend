@@ -1,8 +1,7 @@
 using Baytology.Application.Common.Interfaces;
 using Baytology.Domain.Common.Enums;
 using Baytology.Domain.Common.Results;
-using Baytology.Domain.Notifications;
-using Baytology.Domain.Payments;
+using Baytology.Domain.Entities;
 
 using MediatR;
 
@@ -42,7 +41,7 @@ public class ProcessPaymentWebhookCommandHandler(
         }
 
         if (payment is null)
-            return PaymentErrors.NotFound;
+            return Domain.Exceptions.PaymentErrors.NotFound;
 
         var resolvedGatewayReference = ResolveGatewayReference(request.GatewayReference, payment.Id, normalizedStatus);
 

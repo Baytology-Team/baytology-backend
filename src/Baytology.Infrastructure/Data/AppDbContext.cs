@@ -1,18 +1,10 @@
 using System.Reflection;
 
 using Baytology.Application.Common.Interfaces;
-using Baytology.Domain.AgentDetails;
-using Baytology.Domain.AISearch;
+using Baytology.Domain.Entities;
+using Baytology.Domain.ValueObjects;
 using Baytology.Domain.AuditLogs;
-using Baytology.Domain.Conversations;
-using Baytology.Domain.Bookings;
 using Baytology.Domain.DomainEvents;
-using Baytology.Domain.Identity;
-using Baytology.Domain.Notifications;
-using Baytology.Domain.Payments;
-using Baytology.Domain.Properties;
-using Baytology.Domain.Recommendations;
-using Baytology.Domain.UserProfiles;
 using Baytology.Infrastructure.Identity;
 
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -45,6 +37,7 @@ public class AppDbContext : IdentityDbContext<AppUser>, IAppDbContext
 
     // Bookings
     public DbSet<Booking> Bookings => Set<Booking>();
+    public DbSet<AvailabilityRule> AvailabilityRules => Set<AvailabilityRule>();
 
     // Notifications
     public DbSet<Notification> Notifications => Set<Notification>();

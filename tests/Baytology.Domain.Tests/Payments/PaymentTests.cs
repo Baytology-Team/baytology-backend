@@ -1,6 +1,6 @@
 using Baytology.Domain.Common.Enums;
-using Baytology.Domain.Payments;
-using Baytology.Domain.Payments.Events;
+using Baytology.Domain.Entities;
+using Baytology.Domain.DomainEvents;
 
 namespace Baytology.Domain.Tests.Payments;
 

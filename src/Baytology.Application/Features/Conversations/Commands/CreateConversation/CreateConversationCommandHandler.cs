@@ -1,7 +1,6 @@
 using Baytology.Application.Common.Interfaces;
 using Baytology.Domain.Common.Results;
-using Baytology.Domain.Conversations;
-using Baytology.Domain.Properties;
+using Baytology.Domain.Entities;
 
 using MediatR;
 
@@ -19,7 +18,7 @@ public class CreateConversationCommandHandler(IAppDbContext context)
             .FirstOrDefaultAsync(p => p.Id == request.PropertyId, ct);
 
         if (property is null)
-            return PropertyErrors.NotFound;
+            return Domain.Exceptions.PropertyErrors.NotFound;
 
         if (property.AgentUserId == request.BuyerUserId)
             return ApplicationErrors.Conversation.SelfContact;

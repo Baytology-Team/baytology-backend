@@ -4,10 +4,9 @@ using System.Text;
 using Baytology.Application.Common.Errors;
 using Baytology.Application.Common.Interfaces;
 using Baytology.Application.Features.Identity.Dtos;
-using Baytology.Domain.AgentDetails;
+using Baytology.Domain.Entities;
 using Baytology.Domain.Common.Enums;
 using Baytology.Domain.Common.Results;
-using Baytology.Domain.Identity;
 using Baytology.Infrastructure.Data;
 
 using Microsoft.AspNetCore.Authorization;

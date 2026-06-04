@@ -1,15 +1,7 @@
-using Baytology.Domain.AISearch;
-using Baytology.Domain.AgentDetails;
+using Baytology.Domain.ValueObjects;
+using Baytology.Domain.Entities;
 using Baytology.Domain.AuditLogs;
-using Baytology.Domain.Conversations;
 using Baytology.Domain.DomainEvents;
-using Baytology.Domain.Bookings;
-using Baytology.Domain.Identity;
-using Baytology.Domain.Notifications;
-using Baytology.Domain.Payments;
-using Baytology.Domain.Properties;
-using Baytology.Domain.Recommendations;
-using Baytology.Domain.UserProfiles;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -32,6 +24,7 @@ public interface IAppDbContext
     DbSet<SavedProperty> SavedProperties { get; }
     DbSet<PropertyView> PropertyViews { get; }
     DbSet<AgentReview> AgentReviews { get; }
+    DbSet<AvailabilityRule> AvailabilityRules { get; }
 
     // Conversations
     DbSet<Conversation> Conversations { get; }

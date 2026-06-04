@@ -1,12 +1,6 @@
 using Baytology.Application.Tests.Support;
-using Baytology.Domain.AISearch;
-using Baytology.Domain.Bookings;
-using Baytology.Domain.Conversations;
-using Baytology.Domain.Identity;
-using Baytology.Domain.Notifications;
-using Baytology.Domain.Payments;
-using Baytology.Domain.Properties;
-using Baytology.Domain.Recommendations;
+using Baytology.Domain.ValueObjects;
+using Baytology.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
