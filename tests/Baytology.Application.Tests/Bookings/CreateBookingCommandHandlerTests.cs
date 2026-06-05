@@ -1,9 +1,10 @@
 using Baytology.Application.Common.Interfaces;
+using Baytology.Application.Features.Availability.Queries.GetPropertyAvailability;
 using Baytology.Application.Features.Bookings.Commands.CreateBooking;
 using Baytology.Application.Tests.Support;
-using Baytology.Domain.Entities;
 using Baytology.Domain.Common.Enums;
 using Baytology.Domain.Common.Results;
+using Baytology.Domain.Entities;
 
 namespace Baytology.Application.Tests.Bookings;
 
@@ -16,7 +17,18 @@ public sealed class CreateBookingCommandHandlerTests
         var paymentGateway = new TestPaymentGateway(new PaymentIntentionResponse("int-1", "secret", "https://pay.test/redirect"));
         var notifications = new TestNotificationService();
         var identityService = new TestIdentityService();
-        var handler = new CreateBookingCommandHandler(context, paymentGateway, notifications, identityService);
+
+        var bookingStart = DateTimeOffset.UtcNow.AddDays(12);
+        var bookingEnd = DateTimeOffset.UtcNow.AddDays(18);
+
+        var testSender = new TestSender
+        {
+            ExpectedSlots = new List<TimeSlotDto>
+            {
+                new TimeSlotDto(bookingStart, bookingEnd)
+            }
+        };
+        var handler = new CreateBookingCommandHandler(context, paymentGateway, notifications, identityService, testSender);
 
         var property = CreateProperty();
         var existingBooking = Booking.Create(
@@ -34,8 +46,8 @@ public sealed class CreateBookingCommandHandlerTests
         var command = new CreateBookingCommand(
             property.Id,
             "buyer-new",
-            DateTimeOffset.UtcNow.AddDays(12),
-            DateTimeOffset.UtcNow.AddDays(18),
+            bookingStart,
+            bookingEnd,
             4200m,
             0.03m,
             "EGP");
@@ -55,7 +67,18 @@ public sealed class CreateBookingCommandHandlerTests
         var paymentGateway = new TestPaymentGateway(Error.Failure("PaymentGateway.Unavailable", "Gateway is unavailable."));
         var notifications = new TestNotificationService();
         var identityService = new TestIdentityService();
-        var handler = new CreateBookingCommandHandler(context, paymentGateway, notifications, identityService);
+
+        var bookingStart = DateTimeOffset.UtcNow.AddDays(12);
+        var bookingEnd = DateTimeOffset.UtcNow.AddDays(18);
+
+        var testSender = new TestSender
+        {
+            ExpectedSlots = new List<TimeSlotDto>
+            {
+                new TimeSlotDto(bookingStart, bookingEnd)
+            }
+        };
+        var handler = new CreateBookingCommandHandler(context, paymentGateway, notifications, identityService, testSender);
 
         var property = CreateProperty();
         var agentDetail = AgentDetail.Create(property.AgentUserId, commissionRate: 0.04m).Value;
@@ -67,8 +90,8 @@ public sealed class CreateBookingCommandHandlerTests
         var command = new CreateBookingCommand(
             property.Id,
             "buyer-new",
-            DateTimeOffset.UtcNow.AddDays(12),
-            DateTimeOffset.UtcNow.AddDays(18),
+            bookingStart,
+            bookingEnd,
             4200m,
             0m,
             "EGP");
