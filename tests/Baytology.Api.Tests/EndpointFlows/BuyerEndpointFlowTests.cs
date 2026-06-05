@@ -72,11 +72,25 @@ public sealed class BuyerEndpointFlowTests(ApiTestWebApplicationFactory factory)
         Assert.Equal(HttpStatusCode.OK, (await buyerClient.GetAsync("/api/v1/Bookings")).StatusCode);
         Assert.Equal(HttpStatusCode.OK, (await buyerClient.GetAsync($"/api/v1/Bookings/{factory.SeedData.PendingBookingId}")).StatusCode);
 
+        // Agent sets availability first
+        using var agentClient = factory.CreateAuthenticatedClient(TestSeedData.AgentUserId, TestSeedData.AgentEmail, "Agent");
+        var ruleStartDate = DateTimeOffset.UtcNow.AddDays(15).Date.AddHours(10);
+        await agentClient.PostAsJsonAsync("/api/v1/Availability/rules", new
+        {
+            AgentUserId = TestSeedData.AgentUserId,
+            PropertyId = factory.SeedData.BookingPropertyId,
+            RecurrenceType = 0, // None
+            SpecificDate = DateOnly.FromDateTime(ruleStartDate),
+            StartTime = new TimeSpan(10, 0, 0),
+            EndTime = new TimeSpan(14, 0, 0),
+            SlotDuration = new TimeSpan(0, 30, 0)
+        });
+
         var createBookingResponse = await buyerClient.PostAsJsonAsync("/api/v1/Bookings", new
         {
             PropertyId = factory.SeedData.BookingPropertyId,
-            StartDate = DateTimeOffset.UtcNow.AddDays(15),
-            EndDate = DateTimeOffset.UtcNow.AddDays(18),
+            StartDate = new DateTimeOffset(ruleStartDate.Year, ruleStartDate.Month, ruleStartDate.Day, 10, 30, 0, TimeSpan.Zero),
+            EndDate = new DateTimeOffset(ruleStartDate.Year, ruleStartDate.Month, ruleStartDate.Day, 11, 0, 0, TimeSpan.Zero),
             Amount = 4200,
             CommissionRate = 0.03,
             Currency = "EGP",

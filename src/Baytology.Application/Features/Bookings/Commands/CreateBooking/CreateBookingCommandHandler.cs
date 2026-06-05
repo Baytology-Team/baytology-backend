@@ -17,7 +17,8 @@ public class CreateBookingCommandHandler(
     IAppDbContext context,
     IPaymentGateway paymentGateway,
     INotificationService notificationService,
-    IIdentityService identityService)
+    IIdentityService identityService,
+    ISender sender)
     : IRequestHandler<CreateBookingCommand, Result<CreateBookingResponse>>
 {
     public async Task<Result<CreateBookingResponse>> Handle(CreateBookingCommand request, CancellationToken ct)
@@ -81,6 +82,18 @@ public class CreateBookingCommandHandler(
                 {
                     await RollbackAsync(transaction, ct);
                     return ApplicationErrors.Booking.Overlapping;
+                }
+
+                var availabilityQuery = new Baytology.Application.Features.Availability.Queries.GetPropertyAvailability.GetPropertyAvailabilityQuery(
+                    request.PropertyId,
+                    request.StartDate.Date,
+                    request.StartDate.Date.AddDays(1));
+
+                var availabilityResult = await sender.Send(availabilityQuery, ct);
+                if (availabilityResult.IsError || !availabilityResult.Value.Any(s => s.StartTime == request.StartDate && s.EndTime == request.EndDate))
+                {
+                    await RollbackAsync(transaction, ct);
+                    return Error.Validation("Booking_TimeSlot_Invalid", "The requested time slot is not available or does not match the agent's schedule.");
                 }
 
                 var bookingResult = Booking.Create(
