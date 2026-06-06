@@ -30,9 +30,17 @@ public static class DatabaseInitializer
         {
             if (context.Database.IsRelational())
             {
-                logger.LogInformation("Applying migrations...");
-                await context.Database.MigrateAsync();
-                logger.LogInformation("Migrations applied successfully.");
+                var pendingMigrations = await context.Database.GetPendingMigrationsAsync();
+                if (pendingMigrations.Any())
+                {
+                    logger.LogInformation("Applying migrations...");
+                    await context.Database.MigrateAsync();
+                    logger.LogInformation("Migrations applied successfully.");
+                }
+                else
+                {
+                    logger.LogInformation("No pending migrations to apply.");
+                }
             }
             else
             {
