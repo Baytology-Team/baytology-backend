@@ -52,9 +52,12 @@ public class CreatePropertyCommandHandler(IAppDbContext context)
 
         var property = propertyResult.Value;
 
-        property.SetLocation(
+        var locationResult = property.SetLocation(
             request.AddressLine, request.City, request.District,
             request.ZipCode, request.Latitude, request.Longitude);
+
+        if (locationResult.IsError)
+            return locationResult.Errors;
 
         var amenityResult = PropertyAmenity.Create(property.Id);
         if (amenityResult.IsError)

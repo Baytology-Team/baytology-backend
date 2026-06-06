@@ -91,11 +91,20 @@ public sealed class Property : AuditableEntity
         if (string.IsNullOrWhiteSpace(title))
             return PropertyErrors.TitleRequired;
 
+        if (title.Trim().Length < 3)
+            return Error.Validation("Property_TitleTooShort", "Title must be at least 3 characters long.");
+
+        if (title.Trim().Length > 500)
+            return Error.Validation("Property_TitleTooLong", "Title cannot exceed 500 characters.");
+
         if (price <= 0)
             return PropertyErrors.PriceInvalid;
 
         if (price < 1000)
             return Error.Validation("Property_PriceTooLow", "Price cannot be less than 1000.");
+
+        if (price > 999_999_999)
+            return Error.Validation("Property_PriceTooHigh", "Price cannot exceed 999,999,999.");
 
         if (area <= 0)
             return PropertyErrors.AreaInvalid;
@@ -103,11 +112,23 @@ public sealed class Property : AuditableEntity
         if (area < 10)
             return Error.Validation("Property_AreaTooSmall", "Area cannot be less than 10 square meters.");
 
+        if (area > 100_000)
+            return Error.Validation("Property_AreaTooLarge", "Area cannot exceed 100,000 square meters.");
+
         if (bedrooms < 0)
             return PropertyErrors.BedroomsInvalid;
 
+        if (bedrooms > 100)
+            return Error.Validation("Property_BedroomsTooMany", "Bedrooms cannot exceed 100.");
+
         if (bathrooms < 0)
             return PropertyErrors.BathroomsInvalid;
+
+        if (bathrooms > 100)
+            return Error.Validation("Property_BathroomsTooMany", "Bathrooms cannot exceed 100.");
+
+        if (description is not null && description.Length > 5000)
+            return Error.Validation("Property_DescriptionTooLong", "Description cannot exceed 5000 characters.");
 
         var structureValidation = ValidateStructure(floor, totalFloors);
         if (structureValidation is not null)
@@ -147,11 +168,20 @@ public sealed class Property : AuditableEntity
         if (string.IsNullOrWhiteSpace(title))
             return PropertyErrors.TitleRequired;
 
+        if (title.Trim().Length < 3)
+            return Error.Validation("Property_TitleTooShort", "Title must be at least 3 characters long.");
+
+        if (title.Trim().Length > 500)
+            return Error.Validation("Property_TitleTooLong", "Title cannot exceed 500 characters.");
+
         if (price <= 0)
             return PropertyErrors.PriceInvalid;
 
         if (price < 1000)
             return Error.Validation("Property_PriceTooLow", "Price cannot be less than 1000.");
+
+        if (price > 999_999_999)
+            return Error.Validation("Property_PriceTooHigh", "Price cannot exceed 999,999,999.");
 
         if (area <= 0)
             return PropertyErrors.AreaInvalid;
@@ -159,11 +189,23 @@ public sealed class Property : AuditableEntity
         if (area < 10)
             return Error.Validation("Property_AreaTooSmall", "Area cannot be less than 10 square meters.");
 
+        if (area > 100_000)
+            return Error.Validation("Property_AreaTooLarge", "Area cannot exceed 100,000 square meters.");
+
         if (bedrooms < 0)
             return PropertyErrors.BedroomsInvalid;
 
+        if (bedrooms > 100)
+            return Error.Validation("Property_BedroomsTooMany", "Bedrooms cannot exceed 100.");
+
         if (bathrooms < 0)
             return PropertyErrors.BathroomsInvalid;
+
+        if (bathrooms > 100)
+            return Error.Validation("Property_BathroomsTooMany", "Bathrooms cannot exceed 100.");
+
+        if (description is not null && description.Length > 5000)
+            return Error.Validation("Property_DescriptionTooLong", "Description cannot exceed 5000 characters.");
 
         var structureValidation = ValidateStructure(floor, totalFloors);
         if (structureValidation is not null)
@@ -195,14 +237,34 @@ public sealed class Property : AuditableEntity
         SourceListingUrl = sourceListingUrl;
     }
 
-    public void SetLocation(string? addressLine, string? city, string? district, string? zipCode, decimal? lat, decimal? lng)
+    public Result<Success> SetLocation(string? addressLine, string? city, string? district, string? zipCode, decimal? lat, decimal? lng)
     {
+        if (addressLine is not null && addressLine.Length > 500)
+            return Error.Validation("Property_AddressLineTooLong", "Address line cannot exceed 500 characters.");
+
+        if (city is not null && city.Length > 100)
+            return Error.Validation("Property_CityTooLong", "City cannot exceed 100 characters.");
+
+        if (district is not null && district.Length > 100)
+            return Error.Validation("Property_DistrictTooLong", "District cannot exceed 100 characters.");
+
+        if (zipCode is not null && zipCode.Length > 20)
+            return Error.Validation("Property_ZipCodeTooLong", "Zip code cannot exceed 20 characters.");
+
+        if (lat.HasValue && (lat.Value < -90 || lat.Value > 90))
+            return Error.Validation("Property_LatitudeOutOfRange", "Latitude must be between -90 and 90 degrees.");
+
+        if (lng.HasValue && (lng.Value < -180 || lng.Value > 180))
+            return Error.Validation("Property_LongitudeOutOfRange", "Longitude must be between -180 and 180 degrees.");
+
         AddressLine = addressLine;
         City = city;
         District = district;
         ZipCode = zipCode;
         Latitude = lat;
         Longitude = lng;
+
+        return Result.Success;
     }
 
     public void ChangeStatus(PropertyStatus status) => Status = status;
@@ -234,8 +296,14 @@ public sealed class Property : AuditableEntity
         if (floor.HasValue && floor.Value < 0)
             return PropertyErrors.FloorInvalid;
 
+        if (floor.HasValue && floor.Value > 999)
+            return Error.Validation("Property_FloorTooHigh", "Floor cannot exceed 999.");
+
         if (totalFloors.HasValue && totalFloors.Value <= 0)
             return PropertyErrors.TotalFloorsInvalid;
+
+        if (totalFloors.HasValue && totalFloors.Value > 999)
+            return Error.Validation("Property_TotalFloorsTooHigh", "Total floors cannot exceed 999.");
 
         if (floor.HasValue && totalFloors.HasValue && floor.Value > totalFloors.Value)
             return PropertyErrors.FloorRangeInvalid;
