@@ -287,6 +287,14 @@ public sealed class Property : AuditableEntity
         if (image is null)
             return PropertyErrors.ImageNotFound;
 
+        // If deleting the primary image, auto-select a new primary image
+        if (image.IsPrimary && _images.Count > 1)
+        {
+            var nextPrimary = _images.FirstOrDefault(i => i.Id != imageId);
+            if (nextPrimary is not null)
+                nextPrimary.SetAsPrimary();
+        }
+
         _images.Remove(image);
         return Result.Success;
     }
