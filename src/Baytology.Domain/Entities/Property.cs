@@ -94,8 +94,14 @@ public sealed class Property : AuditableEntity
         if (price <= 0)
             return PropertyErrors.PriceInvalid;
 
+        if (price < 1000)
+            return Error.Validation("Property_PriceTooLow", "Price cannot be less than 1000.");
+
         if (area <= 0)
             return PropertyErrors.AreaInvalid;
+
+        if (area < 10)
+            return Error.Validation("Property_AreaTooSmall", "Area cannot be less than 10 square meters.");
 
         if (bedrooms < 0)
             return PropertyErrors.BedroomsInvalid;
@@ -144,8 +150,14 @@ public sealed class Property : AuditableEntity
         if (price <= 0)
             return PropertyErrors.PriceInvalid;
 
+        if (price < 1000)
+            return Error.Validation("Property_PriceTooLow", "Price cannot be less than 1000.");
+
         if (area <= 0)
             return PropertyErrors.AreaInvalid;
+
+        if (area < 10)
+            return Error.Validation("Property_AreaTooSmall", "Area cannot be less than 10 square meters.");
 
         if (bedrooms < 0)
             return PropertyErrors.BedroomsInvalid;
