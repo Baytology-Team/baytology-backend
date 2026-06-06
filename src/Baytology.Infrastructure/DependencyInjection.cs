@@ -31,9 +31,9 @@ public static class DependencyInjection
             .AddStartupInitializationServices(configuration)
             .AddCachingServices()
             .AddDatabaseServices(configuration, environment)
-            .AddIdentityServices(configuration)
+            .AddIdentityServices(configuration, environment)
             .AddEmailServices(configuration, environment)
-            .AddPaymentServices(configuration)
+            .AddPaymentServices(configuration, environment)
             .AddMessagingServices(configuration)
             .AddRealTimeServices()
             .AddAiFallbackServices(configuration)
@@ -109,7 +109,8 @@ public static class DependencyInjection
 
     private static IServiceCollection AddIdentityServices(
         this IServiceCollection services,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IHostEnvironment environment)
     {
         services.AddOptions<JwtSettings>()
             .Bind(configuration.GetSection("JwtSettings"))
@@ -166,7 +167,7 @@ public static class DependencyInjection
         services.AddScoped<ITokenProvider, TokenProvider>();
         services.AddOptions<GoogleAuthSettings>()
             .Bind(configuration.GetSection("GoogleAuthSettings"))
-            .Validate(settings => !string.IsNullOrWhiteSpace(settings.ClientId), "GoogleAuthSettings:ClientId is required.")
+            .Validate(settings => !string.IsNullOrWhiteSpace(settings.ClientId) || environment.IsDevelopment(), "GoogleAuthSettings:ClientId is required.")
             .ValidateOnStart();
         services.AddScoped<IExternalLoginTokenValidator, Baytology.Infrastructure.Identity.ExternalLoginTokenValidator>();
 
@@ -259,12 +260,12 @@ public static class DependencyInjection
         return normalized;
     }
 
-    private static IServiceCollection AddPaymentServices(this IServiceCollection services, IConfiguration configuration)
+    private static IServiceCollection AddPaymentServices(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
     {
         services.AddOptions<PaymobSettings>()
             .Bind(configuration.GetSection("Paymob"))
-            .Validate(settings => !string.IsNullOrWhiteSpace(settings.ApiKey), "Paymob:ApiKey is required.")
-            .Validate(settings => !string.IsNullOrWhiteSpace(settings.IntegrationId.ToString()), "Paymob:IntegrationId is required.")
+            .Validate(settings => !string.IsNullOrWhiteSpace(settings.ApiKey) || environment.IsDevelopment(), "Paymob:ApiKey is required.")
+            .Validate(settings => !string.IsNullOrWhiteSpace(settings.IntegrationId.ToString()) || environment.IsDevelopment(), "Paymob:IntegrationId is required.")
             .ValidateOnStart();
 
         services.AddScoped<IPaymentGateway, Baytology.Infrastructure.Payments.PaymobGateway>();
