@@ -292,9 +292,10 @@ public sealed class Property : AuditableEntity
         {
             var nextPrimary = _images.FirstOrDefault(i => i.Id != imageId);
             if (nextPrimary is not null)
-                nextPrimary.SetAsPrimary();
+                nextPrimary.SetAsPrimary(true);
         }
 
+        image.SetAsPrimary(false);
         _images.Remove(image);
         return Result.Success;
     }
