@@ -41,4 +41,6 @@ public sealed class PropertyImage : Entity
 
         return new PropertyImage(propertyId, normalizedUrl, isPrimary, sortOrder);
     }
+
+    public void SetAsPrimary() => IsPrimary = true;
 }
