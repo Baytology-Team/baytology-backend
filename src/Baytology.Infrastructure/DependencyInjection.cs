@@ -164,7 +164,10 @@ public static class DependencyInjection
 
         services.AddScoped<IIdentityService, IdentityService>();
         services.AddScoped<ITokenProvider, TokenProvider>();
-        services.AddOptions<GoogleAuthSettings>().Bind(configuration.GetSection("GoogleAuthSettings"));
+        services.AddOptions<GoogleAuthSettings>()
+            .Bind(configuration.GetSection("GoogleAuthSettings"))
+            .Validate(settings => !string.IsNullOrWhiteSpace(settings.ClientId), "GoogleAuthSettings:ClientId is required.")
+            .ValidateOnStart();
         services.AddScoped<IExternalLoginTokenValidator, Baytology.Infrastructure.Identity.ExternalLoginTokenValidator>();
 
         return services;
