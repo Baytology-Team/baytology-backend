@@ -4,6 +4,7 @@ using Baytology.Infrastructure.Identity;
 using Baytology.Infrastructure.Settings;
 
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -48,6 +49,11 @@ public static class DatabaseInitializer
                 await context.Database.EnsureCreatedAsync();
                 logger.LogInformation("Non-relational database created successfully.");
             }
+        }
+        catch (Exception ex) when (ex is SqlException sqlEx && sqlEx.Number == 2714)
+        {
+            // Object already exists error - database is likely already created
+            logger.LogWarning("Database objects already exist. Skipping migration.");
         }
         catch (Exception ex)
         {
