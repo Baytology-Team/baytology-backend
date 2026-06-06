@@ -272,6 +272,11 @@ For production deployment, set the following environment variables or configure 
 | `Email__SmtpPort` | SMTP server port | Yes |
 | `Email__SmtpUsername` | SMTP username | Yes |
 | `Email__SmtpPassword` | SMTP password | Yes |
+| `RabbitMq__HostName` | RabbitMQ server host | Yes |
+| `RabbitMq__Port` | RabbitMQ server port | Yes |
+| `RabbitMq__UserName` | RabbitMQ username | Yes |
+| `RabbitMq__Password` | RabbitMQ password | Yes |
+| `AiWorker__ServiceToken` | AI worker authentication token | Yes |
 
 **Important:**
 - Never commit sensitive values to source control
