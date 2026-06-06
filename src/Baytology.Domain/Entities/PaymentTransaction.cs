@@ -61,6 +61,9 @@ public sealed class PaymentTransaction : Entity
         if (normalizedGatewayReference is not null && normalizedGatewayReference.Length > 200)
             return PaymentErrors.GatewayReferenceTooLong;
 
+        if (rawResponse is not null && rawResponse.Length > 10_000)
+            return Error.Validation("Payment_RawResponseTooLong", "Raw response cannot exceed 10,000 characters.");
+
         return new PaymentTransaction(paymentId, normalizedGatewayReference, normalizedGatewayName, normalizedStatus, rawResponse);
     }
 }

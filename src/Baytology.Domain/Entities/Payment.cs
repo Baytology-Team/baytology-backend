@@ -67,13 +67,23 @@ public sealed class Payment : AuditableEntity
         if (amount <= 0)
             return PaymentErrors.AmountInvalid;
 
+        if (amount > 999_999_999)
+            return Error.Validation("Payment_AmountTooHigh", "Amount cannot exceed 999,999,999.");
+
         if (commissionRate < 0 || commissionRate >= 1)
             return PaymentErrors.CommissionRateInvalid;
 
         if (string.IsNullOrWhiteSpace(currency))
             return PaymentErrors.CurrencyRequired;
 
+        if (currency.Length != 3)
+            return Error.Validation("Payment_CurrencyInvalid", "Currency must be a valid ISO 4217 code (3 characters).");
+
         var commission = amount * commissionRate;
+        var netAmount = amount - commission;
+
+        if (netAmount < 0)
+            return Error.Validation("Payment_NetAmountNegative", "Net amount cannot be negative. Commission rate is too high.");
 
         return new Payment(
             Guid.NewGuid(),

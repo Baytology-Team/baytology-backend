@@ -49,6 +49,12 @@ public sealed class AgentDetail : Entity
         if (!IsValidCommissionRate(commissionRate))
             return AgentDetailErrors.CommissionRateInvalid;
 
+        if (!string.IsNullOrWhiteSpace(agencyName) && agencyName.Trim().Length > 200)
+            return Error.Validation("AgentDetail_AgencyNameTooLong", "Agency name cannot exceed 200 characters.");
+
+        if (!string.IsNullOrWhiteSpace(licenseNumber) && licenseNumber.Trim().Length > 50)
+            return Error.Validation("AgentDetail_LicenseNumberTooLong", "License number cannot exceed 50 characters.");
+
         return new AgentDetail(
             Guid.NewGuid(),
             userId.Trim(),
@@ -61,6 +67,12 @@ public sealed class AgentDetail : Entity
     {
         if (!IsValidCommissionRate(commissionRate))
             return AgentDetailErrors.CommissionRateInvalid;
+
+        if (!string.IsNullOrWhiteSpace(agencyName) && agencyName.Trim().Length > 200)
+            return Error.Validation("AgentDetail_AgencyNameTooLong", "Agency name cannot exceed 200 characters.");
+
+        if (!string.IsNullOrWhiteSpace(licenseNumber) && licenseNumber.Trim().Length > 50)
+            return Error.Validation("AgentDetail_LicenseNumberTooLong", "License number cannot exceed 50 characters.");
 
         AgencyName = string.IsNullOrWhiteSpace(agencyName) ? null : agencyName.Trim();
         LicenseNumber = string.IsNullOrWhiteSpace(licenseNumber) ? null : licenseNumber.Trim();

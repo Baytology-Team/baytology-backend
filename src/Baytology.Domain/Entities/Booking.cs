@@ -59,6 +59,13 @@ public sealed class Booking : AuditableEntity
         if (startDate < DateTimeOffset.UtcNow)
             return BookingErrors.StartDateInvalid;
 
+        var maxEndDate = DateTimeOffset.UtcNow.AddYears(1);
+        if (endDate > maxEndDate)
+            return Error.Validation("Booking_EndDateTooFar", "Booking end date cannot be more than 1 year in the future.");
+
+        if (notes is not null && notes.Length > 1000)
+            return Error.Validation("Booking_NotesTooLong", "Notes cannot exceed 1000 characters.");
+
         return new Booking(
             Guid.NewGuid(),
             propertyId,

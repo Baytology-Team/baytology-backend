@@ -16,6 +16,13 @@ public sealed class UserProfile : AuditableEntity
     public ContactMethod PreferredContactMethod { get; private set; }
 
     private static readonly Regex PhoneRegex = new(@"^\+?[0-9]{10,15}$", RegexOptions.Compiled);
+    private static readonly Regex UrlRegex = new(@"^https?://[^\s/$.?#].[^\s]*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+    private static bool IsValidUrl(string url)
+    {
+        return Uri.TryCreate(url, UriKind.Absolute, out var uriResult)
+               && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
+    }
 
     private UserProfile() { }
 
@@ -50,8 +57,17 @@ public sealed class UserProfile : AuditableEntity
         if (string.IsNullOrWhiteSpace(displayName))
             return UserProfileErrors.DisplayNameRequired;
 
+        if (displayName.Trim().Length < 2)
+            return Error.Validation("UserProfile_DisplayNameTooShort", "Display name must be at least 2 characters long.");
+
+        if (displayName.Trim().Length > 100)
+            return Error.Validation("UserProfile_DisplayNameTooLong", "Display name cannot exceed 100 characters.");
+
         if (!string.IsNullOrWhiteSpace(avatarUrl) && avatarUrl.Trim().Length > 500)
             return UserProfileErrors.AvatarUrlTooLong;
+
+        if (!string.IsNullOrWhiteSpace(avatarUrl) && !IsValidUrl(avatarUrl.Trim()))
+            return Error.Validation("UserProfile_AvatarUrlInvalid", "Avatar URL must be a valid URL.");
 
         if (!string.IsNullOrWhiteSpace(bio) && bio.Trim().Length > 2000)
             return UserProfileErrors.BioTooLong;
@@ -85,8 +101,17 @@ public sealed class UserProfile : AuditableEntity
         if (string.IsNullOrWhiteSpace(displayName))
             return UserProfileErrors.DisplayNameRequired;
 
+        if (displayName.Trim().Length < 2)
+            return Error.Validation("UserProfile_DisplayNameTooShort", "Display name must be at least 2 characters long.");
+
+        if (displayName.Trim().Length > 100)
+            return Error.Validation("UserProfile_DisplayNameTooLong", "Display name cannot exceed 100 characters.");
+
         if (!string.IsNullOrWhiteSpace(avatarUrl) && avatarUrl.Trim().Length > 500)
             return UserProfileErrors.AvatarUrlTooLong;
+
+        if (!string.IsNullOrWhiteSpace(avatarUrl) && !IsValidUrl(avatarUrl.Trim()))
+            return Error.Validation("UserProfile_AvatarUrlInvalid", "Avatar URL must be a valid URL.");
 
         if (!string.IsNullOrWhiteSpace(bio) && bio.Trim().Length > 2000)
             return UserProfileErrors.BioTooLong;
