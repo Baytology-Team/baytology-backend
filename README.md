@@ -249,6 +249,37 @@ All settings are managed through `appsettings.json` with environment overrides a
 | Simulate payments locally | `Paymob:EnableLocalSimulation = true` |
 | Disable external AI services | `ExternalAiServices:ChatbotEnabled = false` + `ExternalAiServices:VoiceRecognitionEnabled = false` |
 
+### Production Configuration
+
+For production deployment, set the following environment variables or configure `appsettings.Production.json`:
+
+| Environment Variable | Description | Required |
+|:---|:---|:---|
+| `ConnectionStrings__DefaultConnection` | SQL Server connection string | Yes |
+| `JwtSettings__Secret` | JWT signing secret (min 32 chars) | Yes |
+| `JwtSettings__Issuer` | JWT issuer | Yes |
+| `JwtSettings__Audience` | JWT audience | Yes |
+| `AdminSettings__DefaultEmail` | Admin email for seeding | Yes |
+| `AdminSettings__DefaultPassword` | Admin password for seeding | Yes |
+| `GoogleAuthSettings__ClientId` | Google OAuth Client ID | Yes |
+| `GoogleAuthSettings__ClientSecret` | Google OAuth Client Secret | Yes |
+| `Paymob__ApiKey` | Paymob API Key | Yes |
+| `Paymob__SecretKey` | Paymob Secret Key | Yes |
+| `Paymob__PublicKey` | Paymob Public Key | Yes |
+| `Paymob__IntegrationId` | Paymob Integration ID | Yes |
+| `Paymob__WebhookToken` | Paymob Webhook Token | Yes |
+| `Email__SmtpHost` | SMTP server host | Yes |
+| `Email__SmtpPort` | SMTP server port | Yes |
+| `Email__SmtpUsername` | SMTP username | Yes |
+| `Email__SmtpPassword` | SMTP password | Yes |
+
+**Important:**
+- Never commit sensitive values to source control
+- Use environment variables or secret management services (Azure Key Vault, AWS Secrets Manager, etc.)
+- Set `Paymob__EnableLocalSimulation = false` in production
+- Set `Email__DeliveryMode = "Smtp"` in production
+- Configure proper CORS origins in production
+
 ---
 
 ## 🧪 Testing
