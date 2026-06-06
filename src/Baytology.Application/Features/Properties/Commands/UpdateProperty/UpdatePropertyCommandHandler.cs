@@ -22,6 +22,26 @@ public class UpdatePropertyCommandHandler(IAppDbContext context)
         if (property.AgentUserId != request.AgentUserId) 
             return ApplicationErrors.Property.AccessDenied;
 
+        // Check for duplicate property based on location (excluding current property)
+        if (request.Latitude.HasValue && request.Longitude.HasValue)
+        {
+            const decimal tolerance = 0.0001m; // ~11 meters tolerance for GPS accuracy
+
+            var existingProperty = await context.Properties
+                .Where(p => p.Latitude.HasValue && p.Longitude.HasValue)
+                .Where(p => p.Id != request.PropertyId) // Exclude current property
+                .Where(p => Math.Abs(p.Latitude.Value - request.Latitude.Value) < tolerance &&
+                           Math.Abs(p.Longitude.Value - request.Longitude.Value) < tolerance)
+                .Where(p => p.AgentUserId == request.AgentUserId)
+                .FirstOrDefaultAsync(ct);
+
+            if (existingProperty is not null)
+            {
+                return Error.Validation("Property_DuplicateLocation", 
+                    "A property at this location already exists. You cannot list the same property multiple times.");
+            }
+        }
+
         var updateResult = property.Update(
             request.Title, request.Description, request.PropertyType, request.ListingType,
             request.Price, request.Area, request.Bedrooms, request.Bathrooms,

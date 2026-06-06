@@ -9,8 +9,10 @@ public class UpdatePropertyCommandValidator : AbstractValidator<UpdatePropertyCo
         RuleFor(x => x.PropertyId).NotEmpty();
         RuleFor(x => x.AgentUserId).NotEmpty();
         RuleFor(x => x.Title).NotEmpty().MaximumLength(500);
-        RuleFor(x => x.Price).GreaterThan(0);
-        RuleFor(x => x.Area).GreaterThan(0);
+        RuleFor(x => x.Price).GreaterThan(0).WithMessage("Price must be greater than 0.");
+        RuleFor(x => x.Price).GreaterThanOrEqualTo(1000).WithMessage("Price cannot be less than 1000.");
+        RuleFor(x => x.Area).GreaterThan(0).WithMessage("Area must be greater than 0.");
+        RuleFor(x => x.Area).GreaterThanOrEqualTo(10).WithMessage("Area cannot be less than 10 square meters.");
         RuleFor(x => x.Bedrooms).GreaterThanOrEqualTo(0);
         RuleFor(x => x.Bathrooms).GreaterThanOrEqualTo(0);
         RuleFor(x => x.Floor).GreaterThanOrEqualTo(0).When(x => x.Floor.HasValue);
