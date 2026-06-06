@@ -8,7 +8,8 @@ public class ResetPasswordCommandValidator : AbstractValidator<ResetPasswordComm
     {
         RuleFor(v => v.Email)
             .NotEmpty().WithMessage("Email is required.")
-            .EmailAddress().WithMessage("A valid email address is required.");
+            .EmailAddress().WithMessage("A valid email address is required.")
+            .MaximumLength(254).WithMessage("Email cannot exceed 254 characters.");
 
         RuleFor(v => v.Token)
             .NotEmpty().WithMessage("Token is required.");
