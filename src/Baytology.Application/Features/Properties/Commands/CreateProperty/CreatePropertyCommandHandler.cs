@@ -20,8 +20,8 @@ public class CreatePropertyCommandHandler(IAppDbContext context)
 
             var existingProperty = await context.Properties
                 .Where(p => p.Latitude.HasValue && p.Longitude.HasValue)
-                .Where(p => Math.Abs(p.Latitude.Value - request.Latitude.Value) < tolerance &&
-                           Math.Abs(p.Longitude.Value - request.Longitude.Value) < tolerance)
+                .Where(p => Math.Abs(p.Latitude!.Value - request.Latitude.Value) < tolerance &&
+                           Math.Abs(p.Longitude!.Value - request.Longitude.Value) < tolerance)
                 .Where(p => p.AgentUserId == request.AgentUserId)
                 .FirstOrDefaultAsync(ct);
 
