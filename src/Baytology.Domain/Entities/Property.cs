@@ -257,6 +257,22 @@ public sealed class Property : AuditableEntity
         if (lng.HasValue && (lng.Value < -180 || lng.Value > 180))
             return Error.Validation("Property_LongitudeOutOfRange", "Longitude must be between -180 and 180 degrees.");
 
+        // Validate Egyptian cities
+        if (city is not null && !IsValidEgyptianCity(city))
+            return PropertyErrors.CityInvalid;
+
+        // Validate district name (if provided)
+        if (district is not null && !IsValidDistrictName(district))
+            return PropertyErrors.DistrictInvalid;
+
+        // Validate Egyptian zip code format (5 digits)
+        if (zipCode is not null && !IsValidEgyptianZipCode(zipCode))
+            return PropertyErrors.ZipCodeInvalid;
+
+        // At least city or district must be provided
+        if (string.IsNullOrWhiteSpace(city) && string.IsNullOrWhiteSpace(district))
+            return PropertyErrors.LocationRequired;
+
         AddressLine = addressLine;
         City = city;
         District = district;
@@ -265,6 +281,60 @@ public sealed class Property : AuditableEntity
         Longitude = lng;
 
         return Result.Success;
+    }
+
+    private static bool IsValidEgyptianCity(string city)
+    {
+        var validCities = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "Cairo", "القاهرة",
+            "Giza", "الجيزة",
+            "Alexandria", "الإسكندرية",
+            "Dakahlia", "الدقهلية",
+            "Red Sea", "البحر الأحمر",
+            "Beheira", "البحيرة",
+            "Faiyum", "الفيوم",
+            "Gharbia", "الغربية",
+            "Ismailia", "الإسماعيلية",
+            "Menofia", "المنوفية",
+            "Minya", "المنيا",
+            "Qaliubiya", "القليوبية",
+            "New Valley", "الوادي الجديد",
+            "Suez", "السويس",
+            "Aswan", "أسوان",
+            "Asyut", "أسيوط",
+            "Beni Suef", "بني سويف",
+            "Port Said", "بورسعيد",
+            "Damietta", "دمياط",
+            "Sharkia", "الشرقية",
+            "Sohag", "سوهاج",
+            "South Sinai", "جنوب سيناء",
+            "Kafr El Sheikh", "كفر الشيخ",
+            "Matrouh", "مطروح",
+            "Luxor", "الأقصر",
+            "Qena", "قنا",
+            "North Sinai", "شمال سيناء"
+        };
+
+        return validCities.Contains(city.Trim());
+    }
+
+    private static bool IsValidDistrictName(string district)
+    {
+        // District name should be at least 2 characters and contain only Arabic or Latin letters, numbers, and spaces
+        var trimmed = district.Trim();
+        if (trimmed.Length < 2 || trimmed.Length > 100)
+            return false;
+
+        // Allow Arabic and Latin letters, numbers, spaces, and common punctuation
+        return System.Text.RegularExpressions.Regex.IsMatch(trimmed, @"^[\p{L}\p{N}\s\-\.]+$");
+    }
+
+    private static bool IsValidEgyptianZipCode(string zipCode)
+    {
+        // Egyptian zip codes are 5 digits
+        var trimmed = zipCode.Trim();
+        return trimmed.Length == 5 && System.Text.RegularExpressions.Regex.IsMatch(trimmed, @"^\d{5}$");
     }
 
     public void ChangeStatus(PropertyStatus status) => Status = status;

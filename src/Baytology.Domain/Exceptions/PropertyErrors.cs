@@ -63,4 +63,19 @@ public static class PropertyErrors
 
     public static readonly Error CannotDeleteLastImage =
         Error.Conflict("Property_Cannot_Delete_Last_Image", "Cannot delete the last image of a property.");
+
+    public static readonly Error CityInvalid =
+        Error.Validation("Property_City_Invalid", "City must be a valid Egyptian city.");
+
+    public static readonly Error DistrictInvalid =
+        Error.Validation("Property_District_Invalid", "District name is invalid.");
+
+    public static readonly Error ZipCodeInvalid =
+        Error.Validation("Property_ZipCode_Invalid", "Zip code must be a valid Egyptian postal code (5 digits).");
+
+    public static readonly Error ImageUrlInvalid =
+        Error.Validation("Property_ImageUrl_Invalid", "Image URL must be a valid URL.");
+
+    public static readonly Error LocationRequired =
+        Error.Validation("Property_Location_Required", "At least city or district must be provided.");
 }
