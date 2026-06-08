@@ -278,6 +278,23 @@ public sealed class Property : AuditableEntity
 
     public void AddImage(PropertyImage image) => _images.Add(image);
 
+    public Result<Success> SetPrimaryImage(Guid imageId)
+    {
+        var image = _images.FirstOrDefault(i => i.Id == imageId);
+        if (image is null)
+            return PropertyErrors.ImageNotFound;
+
+        // Set all images to non-primary first
+        foreach (var img in _images)
+        {
+            img.SetAsPrimary(false);
+        }
+
+        // Set the selected image as primary
+        image.SetAsPrimary(true);
+        return Result.Success;
+    }
+
     public Result<Success> RemoveImage(Guid imageId)
     {
         if (_images.Count <= 1)

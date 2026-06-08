@@ -8,6 +8,7 @@ using Baytology.Application.Features.Properties.Commands.CreateProperty;
 using Baytology.Application.Features.Properties.Commands.DeleteProperty;
 using Baytology.Application.Features.Properties.Commands.RecordPropertyView;
 using Baytology.Application.Features.Properties.Commands.SaveProperty;
+using Baytology.Application.Features.Properties.Commands.SetPropertyImageAsPrimary;
 using Baytology.Application.Features.Properties.Commands.UnsaveProperty;
 using Baytology.Application.Features.Properties.Commands.UpdateProperty;
 using Baytology.Application.Common.Models;
@@ -225,6 +226,21 @@ public class PropertiesController(ISender sender) : ApiController
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
         var command = new Baytology.Application.Features.Properties.Commands.DeletePropertyImage.DeletePropertyImageCommand(id, imageId, userId);
+        var result = await sender.Send(command, ct);
+        return result.Match(_ => Ok(), Problem);
+    }
+
+    [HttpPut("{id:guid}/images/{imageId:guid}/set-primary")]
+    [Authorize(Roles = "Agent")]
+    [EndpointSummary("Set an image as the primary image for a property")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> SetPrimaryImage(Guid id, Guid imageId, CancellationToken ct)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+        var command = new SetPropertyImageAsPrimaryCommand(id, imageId, Guid.Parse(userId));
         var result = await sender.Send(command, ct);
         return result.Match(_ => Ok(), Problem);
     }
