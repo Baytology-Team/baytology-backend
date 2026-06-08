@@ -23,6 +23,17 @@ public class CreateBookingCommandHandler(
 {
     public async Task<Result<CreateBookingResponse>> Handle(CreateBookingCommand request, CancellationToken ct)
     {
+        // Check max bookings per user (anti-abuse limit)
+        const int maxBookingsPerUser = 50;
+        var userBookingCount = await context.Bookings
+            .CountAsync(b => b.UserId == request.UserId && b.Status != BookingStatus.Cancelled, ct);
+
+        if (userBookingCount >= maxBookingsPerUser)
+        {
+            return Error.Validation("Booking_MaxLimitExceeded",
+                $"You have reached the maximum limit of {maxBookingsPerUser} active bookings. Contact support to increase your limit.");
+        }
+
         Domain.Entities.Property property = null!;
         Booking booking = null!;
         Payment payment = null!;
@@ -87,10 +98,21 @@ public class CreateBookingCommandHandler(
                 var availabilityQuery = new Baytology.Application.Features.Availability.Queries.GetPropertyAvailability.GetPropertyAvailabilityQuery(
                     request.PropertyId,
                     request.StartDate.Date,
-                    request.StartDate.Date.AddDays(1));
+                    request.EndDate.Date.AddDays(1));
 
                 var availabilityResult = await sender.Send(availabilityQuery, ct);
-                if (availabilityResult.IsError || !availabilityResult.Value.Any(s => s.StartTime == request.StartDate && s.EndTime == request.EndDate))
+                if (availabilityResult.IsError)
+                {
+                    await RollbackAsync(transaction, ct);
+                    return availabilityResult.Errors;
+                }
+
+                var availableSlots = availabilityResult.Value;
+                var isSlotAvailable = availableSlots.Any(s => 
+                    s.StartTime <= request.StartDate && 
+                    s.EndTime >= request.EndDate);
+
+                if (!isSlotAvailable)
                 {
                     await RollbackAsync(transaction, ct);
                     return Error.Validation("Booking_TimeSlot_Invalid", "The requested time slot is not available or does not match the agent's schedule.");

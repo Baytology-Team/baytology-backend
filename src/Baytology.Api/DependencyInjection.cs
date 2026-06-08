@@ -194,6 +194,7 @@ public static class PresentationDependencyInjection
                     "https://localhost:3000",
                     "https://127.0.0.1:3000",
                     "https://localhost:4200",
+                    "http://localhost:4200",
                     "https://127.0.0.1:4200"
                 ];
             }

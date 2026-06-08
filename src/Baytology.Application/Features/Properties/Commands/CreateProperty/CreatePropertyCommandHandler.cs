@@ -13,6 +13,17 @@ public class CreatePropertyCommandHandler(IAppDbContext context)
 {
     public async Task<Result<Guid>> Handle(CreatePropertyCommand request, CancellationToken ct)
     {
+        // Check max properties per user (anti-abuse limit)
+        const int maxPropertiesPerUser = 100;
+        var userPropertyCount = await context.Properties
+            .CountAsync(p => p.AgentUserId == request.AgentUserId, ct);
+
+        if (userPropertyCount >= maxPropertiesPerUser)
+        {
+            return Error.Validation("Property_MaxLimitExceeded", 
+                $"You have reached the maximum limit of {maxPropertiesPerUser} properties. Contact support to increase your limit.");
+        }
+
         // Check for duplicate property based on location
         if (request.Latitude.HasValue && request.Longitude.HasValue)
         {
