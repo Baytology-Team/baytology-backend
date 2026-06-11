@@ -5,6 +5,9 @@ using Asp.Versioning;
 using Baytology.Application.Features.AgentDetails.Commands.UpdateAgentDetail;
 using Baytology.Application.Features.AgentDetails.Dtos;
 using Baytology.Application.Features.AgentDetails.Queries.GetAgentDetail;
+using Baytology.Application.Features.Agents.Queries.GetAgentProperties;
+using Baytology.Application.Features.Agents.Queries.GetTopAgents;
+using Baytology.Application.Features.Agents.Queries.SearchAgents;
 using Baytology.Contracts.Requests.AgentDetails;
 
 using MediatR;
@@ -66,5 +69,42 @@ public class AgentsController(ISender sender) : ApiController
             request.CommissionRate);
         var result = await sender.Send(commandToSend, ct);
         return result.Match(_ => Ok(), Problem);
+    }
+
+    [HttpGet("top")]
+    [EndpointSummary("Get top rated agents")]
+    [ProducesResponseType(typeof(List<TopAgentDto>), StatusCodes.Status200OK)]
+    [EndpointDescription("Returns the top rated agents sorted by rating and review count.")]
+    [EndpointName("GetTopAgents")]
+    [MapToApiVersion("1")]
+    public async Task<IActionResult> GetTopAgents(CancellationToken ct, [FromQuery] int limit = 20)
+    {
+        var result = await sender.Send(new GetTopAgentsQuery(limit), ct);
+        return result.Match(Ok, Problem);
+    }
+
+    [HttpGet("search")]
+    [EndpointSummary("Search for agents")]
+    [ProducesResponseType(typeof(List<TopAgentDto>), StatusCodes.Status200OK)]
+    [EndpointDescription("Searches for agents by name or agency name.")]
+    [EndpointName("SearchAgents")]
+    [MapToApiVersion("1")]
+    public async Task<IActionResult> SearchAgents([FromQuery] string searchTerm, CancellationToken ct, [FromQuery] int limit = 20)
+    {
+        var result = await sender.Send(new SearchAgentsQuery(searchTerm, limit), ct);
+        return result.Match(Ok, Problem);
+    }
+
+    [HttpGet("{agentUserId}/properties")]
+    [EndpointSummary("Get agent properties with ratings")]
+    [ProducesResponseType(typeof(List<AgentPropertyDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [EndpointDescription("Returns all properties for a specific agent with their ratings.")]
+    [EndpointName("GetAgentProperties")]
+    [MapToApiVersion("1")]
+    public async Task<IActionResult> GetAgentProperties(string agentUserId, CancellationToken ct)
+    {
+        var result = await sender.Send(new GetAgentPropertiesQuery(agentUserId), ct);
+        return result.Match(Ok, Problem);
     }
 }

@@ -20,12 +20,14 @@ public class CreateConversationCommandHandler(IAppDbContext context)
         if (property is null)
             return Domain.Exceptions.PropertyErrors.NotFound;
 
-        if (property.AgentUserId == request.BuyerUserId)
+        var agentUserId = request.AgentUserId ?? property.AgentUserId;
+
+        if (agentUserId == request.BuyerUserId)
             return ApplicationErrors.Conversation.SelfContact;
 
         var agentProfileExists = await context.AgentDetails
             .AsNoTracking()
-            .AnyAsync(a => a.UserId == property.AgentUserId, ct);
+            .AnyAsync(a => a.UserId == agentUserId, ct);
 
         if (!agentProfileExists)
             return ApplicationErrors.Conversation.AgentUnavailable;
@@ -34,14 +36,14 @@ public class CreateConversationCommandHandler(IAppDbContext context)
             .Where(c =>
             c.PropertyId == request.PropertyId &&
             c.BuyerUserId == request.BuyerUserId &&
-            c.AgentUserId == property.AgentUserId)
+            c.AgentUserId == agentUserId)
             .Select(c => (Guid?)c.Id)
             .FirstOrDefaultAsync(ct);
 
         if (existingConversationId.HasValue)
             return existingConversationId.Value;
 
-        var conversationResult = Conversation.Create(request.PropertyId, request.BuyerUserId, property.AgentUserId);
+        var conversationResult = Conversation.Create(request.PropertyId, request.BuyerUserId, agentUserId);
         if (conversationResult.IsError)
             return conversationResult.Errors;
 
@@ -59,7 +61,7 @@ public class CreateConversationCommandHandler(IAppDbContext context)
                 .Where(c =>
                     c.PropertyId == request.PropertyId &&
                     c.BuyerUserId == request.BuyerUserId &&
-                    c.AgentUserId == property.AgentUserId)
+                    c.AgentUserId == agentUserId)
                 .Select(c => (Guid?)c.Id)
                 .FirstOrDefaultAsync(ct);
 
