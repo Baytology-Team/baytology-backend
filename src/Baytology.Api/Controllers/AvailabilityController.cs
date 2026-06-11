@@ -3,6 +3,7 @@ using Asp.Versioning;
 using Baytology.Application.Features.Availability.Commands.CreateAvailabilityRule;
 using Baytology.Application.Features.Availability.Commands.DeleteAvailabilityRule;
 using Baytology.Application.Features.Availability.Dtos;
+using Baytology.Application.Features.Availability.Queries.GetAgentAvailability;
 using Baytology.Application.Features.Availability.Queries.GetAgentAvailabilityRules;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -49,6 +50,18 @@ public class AvailabilityController(ISender sender) : ApiController
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
         var query = new GetAgentAvailabilityRulesQuery(userId);
+        var result = await sender.Send(query, ct);
+        return result.Match(Ok, Problem);
+    }
+
+    [HttpGet("slots")]
+    [EndpointSummary("Get available time slots for the agent")]
+    [ProducesResponseType(typeof(List<Baytology.Application.Features.Availability.Queries.GetAgentAvailability.TimeSlotDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> GetAvailability([FromQuery] DateTimeOffset startDate, [FromQuery] DateTimeOffset endDate, CancellationToken ct)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+        var query = new GetAgentAvailabilityQuery(userId, startDate, endDate);
         var result = await sender.Send(query, ct);
         return result.Match(Ok, Problem);
     }

@@ -10,6 +10,8 @@ public record BookingDto(
     DateTimeOffset EndDate,
     string Status,
     decimal Amount,
+    decimal Commission,
+    decimal NetAmount,
     string Currency,
     decimal CommissionRate,
     Guid? PaymentId,

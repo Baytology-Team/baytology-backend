@@ -27,6 +27,12 @@ public class GetBookingByIdQueryHandler(IAppDbContext context)
                     ? context.Payments.Where(p => p.Id == b.PaymentId).Select(p => p.Amount).FirstOrDefault()
                     : 0m,
                 b.PaymentId != null
+                    ? context.Payments.Where(p => p.Id == b.PaymentId).Select(p => p.Commission).FirstOrDefault()
+                    : 0m,
+                b.PaymentId != null
+                    ? context.Payments.Where(p => p.Id == b.PaymentId).Select(p => p.NetAmount).FirstOrDefault()
+                    : 0m,
+                b.PaymentId != null
                     ? context.Payments.Where(p => p.Id == b.PaymentId).Select(p => p.Currency).FirstOrDefault() ?? "EGP"
                     : "EGP",
                 b.PaymentId != null

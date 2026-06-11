@@ -8,5 +8,5 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Baytology.Application.Features.Conversations.Commands.CreateConversation;
 
-public record CreateConversationCommand(Guid PropertyId, string BuyerUserId)
+public record CreateConversationCommand(Guid PropertyId, string BuyerUserId, string? AgentUserId = null)
     : IRequest<Result<Guid>>;

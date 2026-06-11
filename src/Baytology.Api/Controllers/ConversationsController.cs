@@ -64,13 +64,17 @@ public class ConversationsController(ISender sender) : ApiController
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-    [EndpointDescription("Creates a new conversation for the authenticated buyer with the agent owning the selected property.")]
+    [EndpointDescription("Creates a new conversation. Buyers can create conversations with property agents. Agents can create conversations with buyers who have booked their properties.")]
     [EndpointName("CreateConversation")]
     [MapToApiVersion("1")]
     public async Task<IActionResult> CreateConversation([FromBody] CreateConversationRequest request, CancellationToken ct)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-        var commandToSend = new CreateConversationCommand(request.PropertyId, userId);
+
+        var buyerUserId = request.BuyerUserId ?? userId;
+        var agentUserId = request.AgentUserId;
+
+        var commandToSend = new CreateConversationCommand(request.PropertyId, buyerUserId, agentUserId);
         var result = await sender.Send(commandToSend, ct);
         return result.Match(id => Ok(new CreateConversationResponse(id)), Problem);
     }
