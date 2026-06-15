@@ -51,12 +51,14 @@ build/
 faiss_index.bin
 
 # Image datasets (too large for git, downloadable)
+images/
 Search_By_Image/images/
 Search_By_Image/data/
 
 # =========================
 # Temp / Build artifacts
 # =========================
+Test-1/
 _baytology_push/
 _publish_repo/
 client/

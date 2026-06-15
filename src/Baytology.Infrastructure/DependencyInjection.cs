@@ -4,6 +4,7 @@ using Microsoft.Extensions.Http.Resilience;
 using Baytology.Application.Common.Interfaces;
 using Baytology.Infrastructure.Caching;
 using Baytology.Infrastructure.Data;
+using Baytology.Infrastructure.Data.Seeding;
 using Baytology.Infrastructure.Identity;
 using Baytology.Infrastructure.Interceptors;
 using Baytology.Infrastructure.Notifications;
@@ -103,6 +104,7 @@ public static class DependencyInjection
         });
 
         services.AddScoped<IAppDbContext>(sp => sp.GetRequiredService<AppDbContext>());
+        services.AddScoped<PropertyCsvSeeder>();
 
         return services;
     }

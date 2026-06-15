@@ -1,0 +1,247 @@
+﻿0: [Heading 1] Chapter 3: Methodology and System Design
+1: [normal] Chapter number is a placeholder ÔÇö adjust to match your report's outline (this material conventionally sits after the Introduction and Literature Review).
+2: [Heading 2] 3.1 Overview of the Design Approach
+3: [normal] The central methodological decision behind Baytology is the replacement of the conventional form-based property search with a conversational, natural-language interface capable of understanding Egyptian Arabic dialect (Ammiya). Where a traditional system requires the user to populate discrete fields
+4: [normal] This design philosophy gives rise to three methodological pillars that shape the entire system and recur throughout this chapter:
+5: [normal] Language understanding over data entry. The burden of translating human intent into machine-readable filters is shifted from the user to the system, using a large language model (LLM) constrained to produce a strictly typed output.
+6: [normal] Information-theoretic dialogue management. Rather than asking follow-up questions in a fixed order, the system selects the next question dynamically by measuring which unanswered attribute carries the most information, using Shannon entropy.
+7: [normal] Machine-learning-assisted ranking. Once a manageable candidate set is obtained, listings are ranked not by price alone but by a learned estimate of value, expressed as a "deal score."
+8: [normal] The project was developed iteratively, a process visible in its version-control history: an early Arabic/English text parser and a first chatbot prototype were followed by the introduction of entropy-based questioning, a Streamlit graphical interface, migration of the LLM to a locally hosted model, 
+9: [Heading 2] 3.2 System Architecture
+10: [normal] Baytology is designed as part of a three-tier architecture, separating presentation, business logic, and data concerns. This separation allows each tier to be developed, scaled, and replaced independently, and it isolates the computationally intensive AI workload from the conventional web stack.
+12: [normal] Figure 3.1 ÔÇö Three-tier system architecture.
+13: [normal] Tier 1 ÔÇö Presentation. An Angular single-page application provides the chat interface, renders property cards, and manages the user's session on the client side.
+14: [normal] Tier 2 ÔÇö Business Logic. This tier is itself divided. A .NET backend acts as an API gateway responsible for routing, authentication, and database operations, while a dedicated Python/FastAPI service encapsulates all artificial-intelligence functionality: natural-language parsing, entropy-based quest
+15: [normal] Tier 3 ÔÇö Data. Persistent data is held in a SQL database accessed through the .NET layer. During development, the AI service operates over preprocessed CSV datasets and serialised machine-learning model files.
+16: [normal] The rationale for isolating the AI logic in a separate Python service is twofold. First, the scientific Python ecosystem (scikit-learn, pandas, SciPy, LangChain, FAISS, faster-whisper) is the natural environment for the NLP and ML components and has no equivalent in the .NET stack. Second, decouplin
+17: [normal] The Python service itself is exposed through a FastAPI application that defines a set of REST endpoints, each corresponding to one stage of the pipeline so that components can be tested independently as well as orchestrated together:Table 3.1 ÔÇö REST endpoints exposed by the AI service.
+35: [Heading 2] 3.3 The Conversational Pipeline
+36: [normal] The core methodological contribution of the system is the design of its conversation flow, which transforms a single message into either a direct answer, a clarifying question, or a ranked list of properties. The /chat endpoint orchestrates this flow over a sequence of stages.
+38: [normal] Figure 3.2 ÔÇö The conversational pipeline.
+39: [normal] Each stage embodies a deliberate design choice:
+40: [normal] Intent classification first distinguishes property-search messages from general conversation, so that casual chat is answered directly by the LLM rather than being forced through the search machinery. Classification is performed by checking the message against a vocabulary of Arabic property-related
+41: [normal] Skip detection recognises when the user declines to answer a clarifying question (for example by replying "┘àÏ┤ ┘à┘ç┘à" ÔÇö "not important"). The declined attribute is recorded so that the system does not ask about it again.
+42: [normal] Short-response enhancement addresses the conversational reality that a user answering a question often replies with a fragment. When the user replies "3" to a question about bedrooms, the system reconstructs the full meaning ("3 bedrooms") before parsing, so that fragmentary answers are interpreted 
+43: [normal] Filter accumulation maintains state across turns. Filters extracted from each message are merged into the session rather than replacing it, so that the search criteria are built up gradually over the course of the dialogue.
+44: [normal] The three-way branch on the size of the result set is the mechanism that turns search into dialogue. An empty result triggers a graceful fallback to a broader, location-only search; an over-large result triggers a clarifying question (Section 3.5); and a sufficiently small result is ranked and retur
+45: [normal] Session state is held in memory, keyed by session identifier, and stores the accumulated filters, the set of skipped attributes, and the attribute most recently asked about. This last item is what enables the short-response enhancement of the following turn.
+46: [Heading 2] 3.4 Natural-Language Understanding
+47: [Heading 3] 3.4.1 LLM-based structured extraction
+48: [normal] The task of converting colloquial Arabic into search criteria is performed by a large language model constrained to emit a strictly typed object rather than free text. This is the most important design decision in the NLP component: instead of attempting to enumerate the countless ways a user might 
+49: [normal] The schema is expressed as a Pydantic model, RealEstateQuery, which functions as the contract between the language model and the rest of the system. It defines ten optional fields covering the location hierarchy (governorate, city, district, compound), the property type, and numerical and categorica
+50: [normal] Embedded translation guidance. Each field's description instructs the model how to map Egyptian Arabic colloquialisms to the standardised English values stored in the database ÔÇö for instance mapping "Ïº┘ä┘éÏº┘çÏ▒Ï®" to "Cairo", "Ï┤┘éÏ®" to "Apartment", or "┘ü┘è┘äÏº" to "Villa". The schema therefore carries not on
+51: [normal] Constrained vocabularies. The property type is restricted to a closed set of valid categories (Apartment, Villa, Chalet, Penthouse, Twin House, Duplex, iVilla, Townhouse, and others). This prevents the model from inventing categories that have no counterpart in the data.
+52: [normal] Parsing is implemented using LangChain's structured-output mechanism: a system prompt enforces English-only output, the user's message is supplied as a human message, and the model is invoked to return a validated RealEstateQuery instance, which is then converted to a dictionary of filters. Because 
+53: [Heading 3] 3.4.2 Model selection and deployment
+54: [normal] Two interchangeable LLM backends were used during development, reflecting a trade-off between privacy/cost and convenience:
+55: [normal] Table 3.2 ÔÇö Language models employed.
+56: [normal] The migration to a locally hosted model (Gemma 2 9B [10] through LM Studio) was a deliberate methodological shift recorded in the project history. Running the model locally removes per-request API costs, eliminates network latency to a cloud provider, and keeps user queries on-premises, which is des
+57: [Heading 2] 3.5 Entropy-Based Question Selection
+58: [normal] When a search yields more candidates than can usefully be presented (the threshold used is twenty), the system must narrow the field by asking the user a further question. The methodological question is which attribute to ask about. Asking in a fixed order is inefficient, because the most useful que
+59: [normal] Baytology addresses this with an information-theoretic criterion. For each candidate attribute, it computes the Shannon entropy [1] of that attribute's distribution over the current result set:
+61: [normal] Entropy is maximised when the attribute's values are evenly spread and minimised when they are uniform. A high-entropy attribute is therefore one on which the remaining listings differ the most, and consequently the one whose value, once supplied by the user, will most effectively partition and redu
+62: [normal] The selection procedure is as follows:
+63: [normal] Compute the entropy of every column in the current candidate DataFrame.
+64: [normal] Map each data column to its corresponding schema field, so that internal column names are aligned with the conversational attributes.
+65: [normal] Exclude attributes that the user has already specified and those the user has explicitly skipped.
+66: [normal] Select the unanswered attribute with the highest entropy as the target of the next question.
+67: [normal] Use the local LLM to phrase that target as a natural, colloquial Egyptian Arabic question.
+68: [normal] The division of labour in this component is characteristic of the whole system: the decision about what to ask is made by a transparent, deterministic statistical measure, while the LLM is used only for the linguistic task of rendering that decision as fluent Arabic. This keeps the dialogue policy e
+69: [Heading 2] 3.6 Property Search and Filtering
+70: [normal] The search component operates over a tabular dataset of listings loaded into a pandas DataFrame, with numeric columns coerced to numeric types and missing string values normalised on load. Filtering applies the accumulated session criteria using rules chosen to match the semantics of each attribute:
+71: [normal] Location hierarchy (governorate, city, district, compound) is matched using partial, case-insensitive substring matching. This tolerance is important because place names in user input and in the data may differ in spelling, prefixes, or transliteration.
+72: [normal] Numerical constraints are applied as inequalities appropriate to their meaning: maximum price as an upper bound, and minimum bedrooms, bathrooms, and size as lower bounds.
+73: [normal] Categorical attributes (property type, payment method) are matched exactly but case-insensitively, since they draw from the controlled vocabularies enforced by the schema.
+74: [normal] This rule-based filtering is intentionally simple and deterministic. Once the LLM has produced clean, validated, normalised filters, the retrieval step itself does not require any further intelligence ÔÇö a clear example of pushing complexity to the boundary (parsing) so that the core operation remain
+75: [Heading 2] 3.7 Machine-Learning Ranking and Deal Scoring
+76: [normal] Returning matching listings is not sufficient; the system also ranks them by value. The design goal is to surface properties that are priced below what their characteristics would predict ÔÇö that is, the best deals.
+77: [normal] This is achieved with a supervised regression model that learns the relationship between a property's attributes and its price. A Random Forest Regressor [2] was selected for this task. Random forests are well suited to heterogeneous tabular real-estate data: they capture non-linear relationships an
+78: [normal] The feature and target design is as follows:
+79: [normal] Features (six): encoded location, encoded property type, bedrooms, bathrooms, size in square metres, and encoded payment method.
+80: [normal] Target: price.
+81: [normal] Categorical encoding: location, type, and payment method are converted to numeric codes using label encoders, which are serialised alongside the model so that the same encoding is applied at inference time.
+82: [normal] The four resulting artefacts ÔÇö the trained model and the three encoders ÔÇö are persisted to disk, allowing the trained model (approximately 82 MB) to be loaded once and reused for inference without retraining.
+83: [normal] At ranking time, the value of each candidate is quantified by a deal score, defined as the difference between the price the model predicts and the price actually asked:
+84: [normal] deal_score=predicted_priceÔêÆactual_price \text{deal\_score} = \text{predicted\_price} - \text{actual\_price} deal_score=predicted_priceÔêÆactual_price
+85: [normal] A positive deal score indicates a property priced below its predicted fair value, and the candidates are returned in descending order of deal score so that the strongest deals appear first. To make inference robust to values not seen during training (for example a location absent from the training d
+86: [Heading 2] 3.8 Voice Input
+87: [normal] To extend accessibility, the system accepts spoken Arabic in addition to typed text. Audio submitted to the /voice-chat endpoint is transcribed and then fed into the same conversational pipeline as written input, so that voice and text converge on a single code path. Transcription uses the faster-wh
+88: [Heading 2] 3.9 Data Design
+89: [normal] The system is built on real Egyptian listing data sourced from a public Kaggle dataset [16] derived from PropertyFinder.eg. Two preprocessed forms of the data are used:
+90: [normal] A primary dataset of roughly 383,000 listings with twenty-two columns, including price, full location hierarchy, property type, size (in both square metres and square feet), bedrooms, bathrooms, payment method, and derived fields such as price per square metre. This is the dataset over which the mod
+91: [normal] A secondary preprocessed dataset of roughly 20,000 listings reduced to seven essential columns (price, location, type, bedrooms, bathrooms, payment method, size), used as a lighter-weight basis for the interactive search.
+92: [normal] The data spans more than two hundred distinct locations (governorates, cities, districts, and compounds) and seventeen property-type categories. The decision to derive both a rich analytical dataset and a slim operational dataset reflects a separation between the offline concerns of model training a
+93: [Heading 2] 3.10 Development Methodology and Tooling
+94: [normal] The implementation rests on the Python scientific stack: FastAPI [11] and Uvicorn for the web service, Pydantic [12] and pydantic-settings for validation and configuration, pandas [4] and NumPy [5] for data handling, SciPy [6] for the entropy computation, scikit-learn [3] and joblib for the machine-
+95: [Heading 2] 3.11 Summary
+96: [normal] This chapter has set out the methodology and design of the Baytology system. Its defining characteristics are the use of a schema-constrained large language model to convert colloquial Arabic into structured search criteria; an information-theoretic, entropy-driven policy for choosing clarifying que
+98: [Heading 1] Chapter 4: Implementation
+99: [Heading 2] 4.1 Overview
+100: [normal] This chapter describes how the design presented in the previous chapter was realised in working software. Whereas the previous chapter was concerned with why each component takes the form it does, this chapter is concerned with how it was built: the project structure, the concrete implementation of 
+101: [Heading 2] 4.2 Development Environment and Project Structure
+102: [normal] The AI service was developed in an isolated Conda environment (chatbot_grade_project) running Python 3.11, which fixes the interpreter version and keeps the project's dependencies separate from the system installation. Dependencies are pinned in requirements.txt, with a separate requirements_windows
+103: [normal] The codebase is organised by responsibility rather than as a single monolithic script, so that each stage of the pipeline lives in its own package and can be tested independently:
+106: [normal] Configuration is centralised in config.py using pydantic-settings. Rather than scattering literals such as model endpoints, dataset paths, and the result-set threshold across the code, these values are declared as a single settings object that reads from environment variables (and a .env file). This
+108: [Heading 2] 4.3 The API Layer
+109: [normal] The service is implemented as a FastAPI application in api.py, which exposes the eight endpoints summarised in the previous chapter. Each endpoint corresponds to one stage of the pipeline, which allowed every component to be exercised in isolation during development as well as orchestrated together 
+110: [normal] Request and response bodies are defined as Pydantic [12] models, which gives automatic validation of incoming data and a self-documenting OpenAPI specification:
+113: [normal] Cross-Origin Resource Sharing (CORS) middleware is enabled so that the Angular frontend (served from a different origin during development) can call the API from the browser.
+114: [normal] Session state. Because HTTP is stateless but the conversation is not, the service keeps per-user state in an in-memory dictionary keyed by session identifier. Each entry stores the filters accumulated so far, the attributes the user has chosen to skip, and the attribute most recently asked about (wh
+117: [normal] A DELETE /session/{id} endpoint clears this state so that a user can start a fresh search. The in-memory approach is simple and fast for a single-instance deployment; its limitation ÔÇö that state is lost on restart and is not shared across instances ÔÇö is noted in the discussion of future work.
+118: [normal] Intent classification. Before a message is treated as a property search, the /chat handler decides whether it is a search request or general conversation. This is done with a lightweight keyword check against a list of Arabic property-related terms, combined with whether the session already holds ac
+121: [Heading 2] 4.4 Natural-Language Parsing
+122: [normal] The parser converts a colloquial Arabic message into a validated set of filters. Its contract is the RealEstateQuery schema in parser/data_validation.py, a Pydantic model whose ten optional fields cover the location hierarchy, property type, and the numerical and categorical constraints. Two impleme
+125: [normal] The parsing itself, in parse_user_txt.py, uses LangChain's [13] structured-output mechanism. The model is bound to the schema, a system prompt enforces English-only output, and the user's message is passed as a human message. The model returns a validated RealEstateQuery instance, which is converted
+128: [normal] Because the output is validated against the schema before it leaves this function, a malformed model response is caught here rather than propagating into the search stage.
+129: [Heading 2] 4.5 The Search Engine
+130: [normal] The search engine in search_engine/search_engine.py operates over the listing dataset loaded into a pandas [4] DataFrame. load_data reads the CSV once, coerces the numeric columns (price, bedrooms, bathrooms, size) to numeric types, and normalises missing string values so that later filtering does n
+133: [normal] Keeping retrieval deterministic and rule-based is deliberate: once the parser has produced clean, normalised filters, the search itself requires no further intelligence, which keeps it fast and easy to reason about.
+134: [Heading 2] 4.6 Entropy-Based Question Generation
+135: [normal] When a search still returns more than the configured threshold of candidates, search_engine/calculate_entropy.py selects the most informative attribute to ask about next. calculate_column_entropy computes the Shannon entropy [1] of a column from its normalised value counts using SciPy [6]:
+138: [normal] ask_user_question_Based_on_entropy then computes the entropy of every column in the current candidate set, maps each data column to its corresponding schema field through a column_mapping dictionary, discards attributes that the user has already specified or explicitly skipped, and selects the unans
+141: [normal] The division of labour is visible in the code: the decision of what to ask is made by the deterministic entropy calculation, while the language model is used only for the linguistic task of producing fluent Arabic, which keeps the dialogue policy transparent.
+142: [Heading 2] 4.7 Machine-Learning Model and Ranking
+143: [Heading 3] 4.7.1 Training
+144: [normal] The price model is trained offline by model/train_model.py using scikit-learn [3]. The script loads the listing data, cleans the price column, and fills missing values. The three categorical features ÔÇö location, type, and payment method ÔÇö are converted to integer codes with LabelEncoder, and the mod
+147: [normal] The fixed random_state guarantees that training is reproducible, and the resulting model file is approximately 82 MB.
+148: [Heading 3] 4.7.2 Scoring and Ranking
+149: [normal] At inference time, model/helper_functions.py ranks a set of candidate listings. Because a user query may contain a location or type value that was never seen during training, encoding is performed through a safe_transform wrapper that returns a fallback code instead of raising, so that one unfamilia
+154: [normal] The deal score is the difference between the model's predicted "fair" price and the actual asking price, so a positive value marks a property priced below expectation. The candidates are returned sorted by deal score, surfacing the strongest deals first.
+155: [Heading 2] 4.8 Voice Transcription
+156: [normal] Spoken Arabic submitted to /voice-chat is handled by voice_utils.py, which transcribes the audio and then feeds the resulting text into the same pipeline as typed input, so voice and text converge on one code path. Transcription uses the faster-whisper library [15], an optimised implementation of Op
+158: [normal] A range of common audio formats (WebM, WAV, MP3, OGG, FLAC, MP4, M4A) is accepted by writing the uploaded bytes to a temporary file before transcription.
+159: [Heading 2] 4.9 Conversation Orchestration
+160: [normal] The /chat endpoint ties the modules together into the conversational loop designed in the previous chapter. The handler classifies intent; short-circuits to a chat reply for general conversation; otherwise detects skip responses and enriches fragmentary answers using the last-asked attribute; parses
+161: [normal] # api.py ÔÇö /chat handler (illustrative, condensed)
+162: [normal] def chat(req: ChatRequest):
+163: [normal] session = sessions.setdefault(req.session_id, new_session())
+165: [normal] if classify_intent(req.message, session) == "general_chat":
+166: [normal] return ChatResponse(reply=llm_chat(req.message), type="chat")
+168: [normal] handle_skip(req.message, session)
+169: [normal] message = enhance_short_response(req.message, session["last_asked_attribute"])
+171: [normal] new_filters = parse_user_text(message)
+172: [normal] session["filters"].update(new_filters)
+174: [normal] results = filter_properties(load_data(settings.dataset_path), session["filters"])
+176: [normal] if len(results) == 0:
+177: [normal] results = location_only_fallback(session["filters"])
+179: [normal] if len(results) > settings.max_results:
+180: [normal] question, attr = ask_user_question_Based_on_entropy(
+181: [normal] results, session["filters"], session["skipped_attributes"])
+182: [normal] session["last_asked_attribute"] = attr
+183: [normal] return ChatResponse(reply=question, type="question")
+185: [normal] ranked = score_and_rank(results, le_location, le_type, le_payment, model)
+186: [normal] return ChatResponse(reply="Here are the best matches:",
+187: [normal] type="results", results=ranked.to_dict("records"))
+190: [normal] This single function is the heart of the running system: each helper it calls is one of the independently testable modules described above.
+191: [Heading 2] 4.10 User Interface and Testing Artefacts
+192: [normal] For demonstration and manual testing during development, a Streamlit [14] application (app_test.py) provides a chat interface over the same pipeline, with the option of using either the local model or the cloud model. Rendering of results is factored into ui/__init__.py: render_property_card produce
+193: [Heading 2] 4.11 Configuration, Reproducibility, and Deployment
+194: [normal] The service is run with the Uvicorn ASGI server. Operational parameters (the model endpoint and name, dataset path, and the result-set threshold) are read from the centralised settings object rather than hard-coded, so the same build runs unchanged against a local LM Studio model during development 
+195: [Heading 2] 4.12 Summary
+196: [normal] This chapter has documented the realisation of the Baytology AI service: a modular Python codebase in which the parser, search engine, entropy-based question generator, machine-learning model, and voice transcriber are each implemented as an independent, testable unit, and are orchestrated by the Fa
+198: [normal] Reference numbers in this chapter ([1] Shannon, [3] scikit-learn, [4] pandas, [6] SciPy, [9] Whisper, [11] FastAPI, [12] Pydantic, [13] LangChain, [14] Streamlit, [15] faster-whisper) correspond to the same shared bibliography used in the Methodology chapter; no new sources are introduced here. When
+200: [Heading 1] Chapter 5: Results and Evaluation
+201: [normal] Chapter number is a placeholder ÔÇö set it to follow your Implementation chapter. Bracketed citations reuse the shared bibliography from the earlier chapters. Items marked [INSERT SCREENSHOT] are figure placeholders for you to fill in.
+202: [Heading 2] 5.1 Evaluation Approach
+203: [normal] This chapter evaluates the implemented system against its objectives. The evaluation is primarily functional and qualitative: it demonstrates that each component behaves as designed and that the components combine into a working conversational search experience. The descriptive characteristics of th
+206: [Heading 2] 5.2 Dataset and Experimental Setup
+207: [normal] The system was developed and evaluated against real Egyptian property data obtained from a public Kaggle dataset [16] derived from PropertyFinder.eg. Two preprocessed forms of the data were used, summarised in Table 5.1.Table 5.1 ÔÇö The two preprocessed datasets used.
+208: [normal] The data spans more than two hundred distinct locations across the governorate, city, district, and compound levels, and seventeen property-type categories (Apartment, Villa, Chalet, Penthouse, Twin House, Duplex, iVilla, Townhouse, and others). The price model is a Random Forest Regressor [2] train
+209: [Heading 2] 5.3 Natural-Language Understanding Results
+210: [normal] The natural-language parser was assessed functionally, by submitting representative Egyptian-Arabic (Ammiya) queries and inspecting the structured filters extracted from each. In this informal testing the parser reliably converted colloquial input into the intended schema fields, correctly normalisi
+211: [normal] Two design features were confirmed to work in these examples. First, dialect normalisation: colloquial terms such as Ï┤┘éÏ® and ┘ü┘è┘äÏº are mapped to the canonical categories Apartment and Villa, and Ï¿Ïº┘äÏ¬┘éÏ│┘èÏÀ is mapped to Installments. Second, short-response handling: when the system has just asked about 
+212: [normal] It should be emphasised that Table 5.2 demonstrates capability on representative inputs; it does not constitute a measured accuracy figure. A quantitative parsing evaluation is described in Section 5.6.
+213: [Heading 2] 5.4 Conversational Behaviour Results
+214: [normal] The central behaviour of the system ÔÇö turning a broad search into a focused dialogue ÔÇö was verified end to end. A typical interaction proceeds as follows. The user issues an initial query; if it matches more candidates than the configured threshold, the system selects the most informative unanswered
+217: [normal] The exchange confirms several behaviours operating together: intent classification (the messages are routed to property search rather than general chat), filter accumulation across turns (district and price are combined with the original type and governorate), entropy-driven question selection (the 
+218: [normal] In informal use the system responded interactively, without delay noticeable to the user, for both text and voice input; a formal latency benchmark was not conducted and is noted as further work in Section 5.6.
+219: [normal] Figure 5.1 ÔÇö [INSERT SCREENSHOT: the chatbot interface showing an initial query and the system's first follow-up question.]
+220: [normal] Figure 5.2 ÔÇö [INSERT SCREENSHOT: a completed conversation showing the final ranked property results / property cards.]
+221: [Heading 2] 5.5 Search and Ranking Results
+222: [normal] Once a query has been narrowed to a manageable candidate set, the results are ordered by deal score ÔÇö the difference between the price predicted by the trained model and the actual asking price ÔÇö so that listings priced below their predicted value appear first. Table 5.3 shows the form of this ranke
+223: [normal] This table demonstrates the output format and ranking logic rather than the accuracy of the underlying price predictions. Whether the predicted prices are themselves accurate is a separate question that requires the quantitative model evaluation described next; the deal-score ordering is only as rel
+224: [Heading 2] 5.6 Limitations and Recommended Further Evaluation
+225: [normal] In the interest of an honest assessment, the following evaluations were not performed in this work. Each is recommended as further work, with a brief note on how it would be carried out, so that the system's behaviour can be quantified rather than only demonstrated.
+226: [normal] Predictive accuracy of the price model. No error metrics were computed. This would be addressed by splitting the listing data into training and test sets (for example 80/20) and reporting the coefficient of determination (R┬▓), mean absolute error (MAE), and root-mean-square error (RMSE) on the held-
+227: [normal] Parsing accuracy. The parser was assessed only on representative examples (Section 5.3). A quantitative evaluation would use a labelled set of Egyptian-Arabic queries paired with their correct structured filters, and report the proportion of fields extracted correctly (field-level accuracy) and the 
+228: [normal] Latency. Although the system felt responsive in use, response times for the main endpoints (/chat, /parse, /voice-chat) were not measured. These could be benchmarked by timing a batch of representative requests and reporting mean and percentile response times.
+229: [normal] User evaluation. No controlled user study was conducted. A small study in which participants complete property-search tasks and rate the experience (for example via a usability questionnaire) would provide evidence on whether the conversational interface is genuinely easier than form-based search ÔÇö 
+230: [normal] Two further limitations of the implementation itself are relevant to evaluation. Session state is held in memory, so it does not persist across restarts or scale across multiple service instances; and the FAISS-based similarity recommendation discussed in the original design was not implemented in t
+231: [Heading 2] 5.7 Summary
+232: [normal] This chapter has evaluated Baytology functionally and qualitatively. The natural-language parser was shown to extract correct structured filters from representative colloquial Arabic queries, including dialect normalisation and contextual handling of short replies; the conversational loop was shown 
+234: [normal] Reference numbers correspond to the shared bibliography used in the earlier chapters ([1] Shannon, [2] Breiman, [16] Kaggle dataset); no new sources are introduced here. Replace the figure placeholders with your screenshots and, where tables contain "ÔÇª", populate the cells from a live run of your sy
+240: [Heading 1] Chapter 6: The Intelligence Core ÔÇö Natural-Language Understanding, Machine Learning, and Entropy-Based Dialogue
+242: [Heading 2] 6.1 Introduction
+243: [normal] Three modules give Baytology its intelligence, and together they distinguish it from a conventional filtered search. The first is a natural-language understanding (NLU) module that converts free-form Egyptian-Arabic text into structured search criteria. The second is a machine-learning (ML) module t
+244: [normal] These modules are not independent features bolted together; they form a pipeline in which the output of one becomes the input of the next:
+246: [normal] Figure 4.1 ÔÇö The three AI modules and their place in the conversational loop.
+247: [normal] A design principle runs through all three and is worth stating at the outset: each module pairs a powerful but opaque component with a transparent, deterministic one, and keeps control in the hands of the deterministic part. The NLU module uses a large language model but constrains it to a fixed sch
+248: [Heading 2] 6.2 Module One: Arabic Natural-Language Understanding
+249: [Heading 3] 6.2.1 The Problem
+250: [normal] The module must interpret property requests written in Egyptian colloquial Arabic (Ammiya), the everyday spoken dialect, rather than Modern Standard Arabic. This is a demanding setting for several reasons. Arabic is morphologically rich, so a single concept appears in many inflected surface forms. T
+251: [Heading 3] 6.2.2 Approach: Schema-Constrained Extraction
+252: [normal] The module reframes interpretation as a structured information-extraction task and delegates it to a large language model, but constrains the model so that it cannot return free text ÔÇö only a fixed, typed object. This combines the linguistic flexibility of an LLM, which can absorb the variability of
+253: [Heading 3] 6.2.3 The Output Schema
+254: [normal] The contract is the RealEstateQuery model, defined with Pydantic [12]. Every field is optional, because a user rarely specifies all attributes at once; only the fields the user actually mentions are populated, and the rest remain unset so that they can be asked about later. Two aspects of the schema
+257: [normal] First, the field descriptions carry domain knowledge. Each description does more than document the field: it instructs the model how to normalise colloquial Arabic to the canonical English value stored in the data. The schema therefore encodes the Arabic-to-English mapping directly, so that translat
+258: [Heading 3] 6.2.4 Extraction Pipeline
+259: [normal] Extraction binds the model to the schema, supplies a system prompt that fixes the task and forces English-only output, passes the user's message, and converts the validated result into a filter dictionary with unset fields removed:
+262: [normal] The orchestration is provided by LangChain's [13] structured-output mechanism, which is responsible for presenting the schema to the model and parsing its reply back into a validated object.
+263: [Heading 3] 6.2.5 Validation and Robustness
+264: [normal] Because the model's output is validated against the schema before it is returned, the module fails safely. A response with a wrong type (text where a number is expected) or an out-of-vocabulary category is rejected at this boundary rather than silently corrupting the search. This is the practical pa
+265: [Heading 3] 6.2.6 Model Selection
+266: [normal] The module was designed to run against either a locally hosted model ÔÇö Gemma 2 9B Instruct [10] served through LM Studio's OpenAI-compatible interface ÔÇö or a cloud model. The project deliberately moved to the local model: it removes per-request API cost, eliminates network latency, and keeps users' 
+267: [Heading 2] 6.3 Module Two: Machine-Learning Deal Scoring
+268: [Heading 3] 6.3.1 From Price Prediction to Value
+269: [normal] Returning listings that merely match the filters is not enough; the system aims to surface the best value. The module therefore learns the relationship between a property's attributes and its market price, predicts what each candidate "should" cost, and compares that prediction with the actual askin
+270: [Heading 3] 6.3.2 Why a Random Forest
+271: [normal] A Random Forest Regressor [2] was chosen. A random forest is an ensemble of decision trees: each tree is trained on a bootstrap resample of the data and on a random subset of features at each split, and the forest's prediction is the average of the individual trees' predictions. This construction su
+272: [Heading 3] 6.3.3 Features and Categorical Encoding
+273: [normal] The model uses six features: encoded location, encoded property type, number of bedrooms, number of bathrooms, size in square metres, and encoded payment method; the target is price. The three categorical features must be converted to numbers, which raises a genuine difficulty: location is high-card
+274: [normal] This introduces the classic out-of-vocabulary problem: at prediction time a user's location or type may be a value the encoder never saw during training, which would normally raise an error and abort the ranking. The module guards against this with a safe wrapper that substitutes a fallback code for
+277: [Heading 3] 6.3.4 Training and Persistence
+278: [normal] Training is performed offline. The forest is built with one hundred estimators and a fixed random seed, which makes the result reproducible, and the trained model together with the three fitted encoders is serialised to disk so the system loads them once and reuses them for inference without retrain
+281: [Heading 3] 6.3.5 The Deal Score
+282: [normal] Value is expressed as a single interpretable quantity. For each candidate the model predicts a price, and the deal score is the residual between that prediction and the asking price:
+283: [normal] deal_score=predicted_priceÔêÆactual_price
+284: [normal] A positive deal score marks a property priced below its predicted fair value; the larger the score, the better the apparent bargain. Candidates are returned in descending order of deal score, so the strongest deals appear first. Expressing value as a price residual keeps the output explainable: the 
+285: [Heading 3] 6.3.6 Limitations
+286: [normal] The reliability of the deal score depends entirely on the accuracy of the underlying price predictions, and that accuracy was not quantitatively measured in this work ÔÇö no held-out test error (R┬▓, MAE, or RMSE) was computed. The ranking is therefore demonstrated functionally rather than validated nu
+287: [Heading 2] 6.4 Module Three: Entropy-Based Question Selection
+288: [Heading 3] 6.4.1 The Problem
+289: [normal] When a search still matches more candidates than can usefully be shown, the system must ask the user a clarifying question ÔÇö and the order of questions matters. A fixed script ("always ask price, then bedrooms, then ÔÇª") is inefficient, because the most useful question depends on the candidates that 
+290: [Heading 3] 6.4.2 Information-Theoretic Foundation
+291: [normal] The measure used is Shannon entropy [1], [18], the information-theoretic quantity of uncertainty in a distribution. For an attribute $X$ whose values occur in the current candidate set with probabilities $p(x)$, the entropy is
+293: [normal] measured in bits. Entropy is maximal when the attribute's values are spread evenly across the candidates ÔÇö the case of greatest uncertainty about which value any given listing has ÔÇö and zero when every candidate shares the same value, where there is no uncertainty at all. A high-entropy attribute is
+294: [Heading 3] 6.4.3 Connection to Information Gain
+295: [normal] This is the same principle that underlies decision-tree learning, where attributes are chosen to split the data so as to maximise information gain ÔÇö the reduction in entropy achieved by the split [17]. Baytology applies that idea to dialogue management rather than tree construction: each question is
+296: [Heading 3] 6.4.4 The Algorithm
+297: [normal] The procedure is deterministic. The entropy of every column in the current candidate set is computed; each data column is mapped to its corresponding schema field; attributes the user has already specified or explicitly skipped are excluded; and the remaining attribute with the highest entropy is se
+300: [Heading 3] 6.4.5 Worked Example
+301: [normal] To make the criterion concrete, suppose a search has narrowed to one hundred candidate listings, and the system must choose among three unanswered attributes. Table 4.1 shows their distributions over the current candidates and the resulting entropy.Table 4.1 ÔÇö Illustrative entropy of three candidate
+302: [normal] Asking about the city would be useless: all candidates share the value, so its entropy is zero and the answer cannot reduce the set. Payment method is mildly informative, but the strong 90/10 imbalance means most candidates would survive either answer. Bedrooms has the highest entropy, $1.49$ bits, 
+304: [Heading 3] 6.4.6 Phrasing and Edge Cases
+305: [normal] Once the subject of the question has been chosen by the entropy calculation, the local language model is used for the single remaining task of rendering it as a natural, colloquial Egyptian-Arabic question. The decision of what to ask is thus made by a transparent statistical measure, and the model 
+306: [Heading 2] 6.5 How the Three Modules Cooperate
+307: [normal] The modules are most powerful in combination. The NLU module turns each user message into clean, validated filters and so determines the candidate set. When that set is too large, the entropy module inspects it and asks the one question expected to shrink it most, and the user's answer flows back th
+308: [Heading 2] 6.6 Summary
+309: [normal] This chapter has examined the three modules that constitute Baytology's intelligence. The natural-language understanding module casts dialect interpretation as schema-constrained extraction, using a large language model whose output is forced to conform to a typed contract that also encodes the Arab
+322: [Heading 2] References
+323: [normal] [1] C. E. Shannon, "A mathematical theory of communication," The Bell System Technical Journal, vol. 27, no. 3, pp. 379ÔÇô423, 1948.
+324: [normal] [2] L. Breiman, "Random forests," Machine Learning, vol. 45, no. 1, pp. 5ÔÇô32, 2001.
+325: [normal] [3] F. Pedregosa et al., "Scikit-learn: Machine learning in Python," Journal of Machine Learning Research, vol. 12, pp. 2825ÔÇô2830, 2011.
+326: [normal] [4] W. McKinney, "Data structures for statistical computing in Python," in Proceedings of the 9th Python in Science Conference (SciPy), 2010, pp. 56ÔÇô61.
+327: [normal] [5] C. R. Harris et al., "Array programming with NumPy," Nature, vol. 585, pp. 357ÔÇô362, 2020.
+328: [normal] [6] P. Virtanen et al., "SciPy 1.0: Fundamental algorithms for scientific computing in Python," Nature Methods, vol. 17, pp. 261ÔÇô272, 2020.
+329: [normal] [7] J. Johnson, M. Douze, and H. J├®gou, "Billion-scale similarity search with GPUs," IEEE Transactions on Big Data, vol. 7, no. 3, pp. 535ÔÇô547, 2019.
+330: [normal] [8] M. Douze et al., "The Faiss library," arXiv preprint arXiv:2401.08281, 2024.
+331: [normal] [9] A. Radford, J. W. Kim, T. Xu, G. Brockman, C. McLeavey, and I. Sutskever, "Robust speech recognition via large-scale weak supervision," in Proceedings of the 40th International Conference on Machine Learning (ICML), PMLR, vol. 202, 2023, pp. 28492ÔÇô28518.
+332: [normal] [10] Gemma Team, Google DeepMind, "Gemma 2: Improving open language models at a practical size," arXiv preprint arXiv:2408.00118, 2024.
+333: [normal] [11] S. Ram├¡rez, "FastAPI," 2018. [Online]. Available: https://fastapi.tiangolo.com
+334: [normal] [12] S. Colvin et al., "Pydantic," 2024. [Online]. Available: https://docs.pydantic.dev
+335: [normal] [13] H. Chase, "LangChain," 2022. [Online]. Available: https://www.langchain.com
+336: [normal] [14] Streamlit Inc., "Streamlit: A faster way to build and share data apps," 2019. [Online]. Available: https://streamlit.io
+337: [normal] [15] SYSTRAN, "faster-whisper," 2023. [Online]. Available: https://github.com/SYSTRAN/faster-whisper
+338: [normal] [16] H. Khaled, "Egyptian real estate listings," Kaggle, 2024. [Online]. Available: https://www.kaggle.com/datasets/hassankhaled21/egyptian-real-estate-listings
+339: [normal] [17] J. R. Quinlan, "Induction of decision trees," Machine Learning, vol. 1, no. 1, pp. 81ÔÇô106, 1986.
+340: [normal] [18] T. M. Cover and J. A. Thomas, Elements of Information Theory, 2nd ed. Hoboken, NJ: Wiley-Interscience, 2006.

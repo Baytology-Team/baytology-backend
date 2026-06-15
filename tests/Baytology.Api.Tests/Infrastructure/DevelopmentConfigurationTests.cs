@@ -23,6 +23,6 @@ public sealed class DevelopmentConfigurationTests
             .AddJsonFile("appsettings.Development.json", optional: false)
             .Build();
 
-        Assert.False(configuration.GetValue<bool>("StartupInitialization:SeedPropertyCsvOnStartup"));
+        Assert.True(configuration.GetValue<bool>("StartupInitialization:SeedPropertyCsvOnStartup"));
     }
 }

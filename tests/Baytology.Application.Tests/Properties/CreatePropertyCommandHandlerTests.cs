@@ -77,7 +77,7 @@ public sealed class CreatePropertyCommandHandlerTests
             45m,
             0,
             1,
-            null, null, null, null, null, null, null, null);
+            null, null, null, "Cairo", null, null, null, null);
 
         var result = await handler.Handle(command, CancellationToken.None);
 

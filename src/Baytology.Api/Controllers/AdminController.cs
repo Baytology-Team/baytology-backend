@@ -18,6 +18,7 @@ using Baytology.Application.Features.Admin.Queries.GetUsers;
 using Baytology.Application.Features.Identity.Dtos;
 using Baytology.Contracts.Common;
 using Baytology.Contracts.Requests.Admin;
+using Baytology.Infrastructure.Data.Seeding;
 
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -27,7 +28,7 @@ namespace Baytology.Api.Controllers;
 
 [ApiVersion("1")]
 [Authorize(Roles = "Admin")]
-public class AdminController(ISender sender) : ApiController
+public class AdminController(ISender sender, PropertyCsvSeeder csvSeeder) : ApiController
 {
     [HttpGet("users")]
     [EndpointSummary("Get all users")]
@@ -217,5 +218,19 @@ public class AdminController(ISender sender) : ApiController
     {
         var result = await sender.Send(new GetDomainEventLogsQuery(pageRequest.PageNumber, pageRequest.PageSize), ct);
         return result.Match(Ok, Problem);
+    }
+
+    [HttpPost("seed-properties")]
+    [EndpointSummary("Seed properties from CSV file")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [EndpointDescription("Imports properties from CSV file into the database.")]
+    [EndpointName("SeedPropertiesFromCsv")]
+    [MapToApiVersion("1")]
+    public async Task<IActionResult> SeedPropertiesFromCsv(CancellationToken ct = default)
+    {
+        var csvFilePath = Path.Combine(Directory.GetCurrentDirectory(), "egypt_real_estate_preprocessed_analysis-and-segmentation.csv");
+        await csvSeeder.SeedAsync(csvFilePath, ct);
+        return Ok(new { message = "CSV seeding completed" });
     }
 }

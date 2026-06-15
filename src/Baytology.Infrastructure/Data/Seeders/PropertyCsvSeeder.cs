@@ -60,6 +60,7 @@ public static class PropertyCsvSeeder
             }
         }
 
+        await BackfillImagesAsync(services, logger);
         await BackfillSourceListingMetadataAsync(services, logger, csvPath);
         await SyncPropertiesFromCsvAsync(context, logger, csvPath, agentUser!.Id);
     }
@@ -70,6 +71,10 @@ public static class PropertyCsvSeeder
         string csvPath,
         string agentUserId)
     {
+        if (context.Database.IsRelational())
+        {
+            context.Database.SetCommandTimeout(300);
+        }
         logger.LogInformation("Synchronizing properties from CSV: {Path}", csvPath);
         var imageIdMapping = LoadImageIdMapping(csvPath, logger);
 
@@ -143,7 +148,10 @@ public static class PropertyCsvSeeder
                     var compound = TrimToLength(GetString("compound"), 500);
                     var type = GetString("type")?.Trim()?.ToLower();
                     var url = TrimToLength(GetString("url"), 1000);
-                    var sourceId = ResolveSourceId(GetString("Image_Path"), imageIdMapping);
+                    
+                    var rowIndex = (processedCount - 1).ToString();
+                    var sourceId = imageIdMapping.TryGetValue(rowIndex, out var mappedId) ? mappedId : (Guid?)null;
+                    
                     var normalizedUrl = NormalizeUrl(url);
 
                     if (price <= 0)
@@ -204,6 +212,16 @@ public static class PropertyCsvSeeder
                     context.Properties.Add(property);
                     context.PropertyAmenities.Add(amenityResult.Value);
 
+                    if (sourceId.HasValue)
+                    {
+                        var imageUrl = $"/images/{sourceId.Value}.jpg";
+                        var imageResult = PropertyImage.Create(property.Id, imageUrl, true, 0);
+                        if (imageResult.IsSuccess)
+                        {
+                            context.PropertyImages.Add(imageResult.Value);
+                        }
+                    }
+
                     if (!string.IsNullOrWhiteSpace(normalizedUrl))
                         normalizedExistingUrls.Add(normalizedUrl);
 
@@ -245,12 +263,7 @@ public static class PropertyCsvSeeder
     {
         var candidates = new[]
         {
-            Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "Search_By_Image", "data", "updated_properties.csv"),
-            Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "Search_By_Image", "data", "updated_properties.csv"),
-            Path.Combine(Directory.GetCurrentDirectory(), "Search_By_Image", "data", "updated_properties.csv"),
-            Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "egypt_real_estate_preprocessed_analysis-and-segmentation.csv"),
-            Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "egypt_real_estate_preprocessed_analysis-and-segmentation.csv"),
-            Path.Combine(Directory.GetCurrentDirectory(), "egypt_real_estate_preprocessed_analysis-and-segmentation.csv"),
+            @"F:\baytology-backend\egypt_real_estate_preprocessed_analysis-and-segmentation.csv"
         };
 
         return candidates.FirstOrDefault(File.Exists);
@@ -258,7 +271,7 @@ public static class PropertyCsvSeeder
 
     private static IReadOnlyDictionary<string, Guid> LoadImageIdMapping(string csvPath, ILogger logger)
     {
-        var mappingPath = Path.Combine(Path.GetDirectoryName(csvPath) ?? string.Empty, "faiss_id_mapping.json");
+        var mappingPath = @"F:\GraduationProject\Search_By_Image\data\faiss_id_mapping.json";
         if (!File.Exists(mappingPath))
             return new Dictionary<string, Guid>(StringComparer.OrdinalIgnoreCase);
 
@@ -323,9 +336,51 @@ public static class PropertyCsvSeeder
         return ListingType.Sale;
     }
 
+    private static async Task BackfillImagesAsync(IServiceProvider services, ILogger logger)
+    {
+        var context = services.GetRequiredService<AppDbContext>();
+        
+        if (context.Database.IsRelational())
+        {
+            context.Database.SetCommandTimeout(300);
+        }
+
+        logger.LogInformation("Backfilling images for existing properties...");
+        var propertiesWithoutImages = await context.Properties
+            .Include(p => p.Images)
+            .Where(p => p.Images.Count == 0)
+            .ToListAsync();
+
+        if (propertiesWithoutImages.Count == 0)
+        {
+            logger.LogInformation("No properties without images found.");
+            return;
+        }
+
+        int addedCount = 0;
+        foreach (var p in propertiesWithoutImages)
+        {
+            var imageUrl = $"/images/{p.Id}.jpg";
+            var imageResult = PropertyImage.Create(p.Id, imageUrl, true, 0);
+            if (imageResult.IsSuccess)
+            {
+                context.PropertyImages.Add(imageResult.Value);
+                addedCount++;
+            }
+        }
+
+        await context.SaveChangesAsync();
+        logger.LogInformation("Successfully backfilled images for {Count} properties.", addedCount);
+    }
+
     private static async Task BackfillSourceListingMetadataAsync(IServiceProvider services, ILogger logger, string csvPath)
     {
         var context = services.GetRequiredService<AppDbContext>();
+        
+        if (context.Database.IsRelational())
+        {
+            context.Database.SetCommandTimeout(300);
+        }
 
         var propertiesToBackfill = await context.Properties
             .Where(property => property.SourceListingUrl == null)

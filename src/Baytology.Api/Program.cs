@@ -1,5 +1,6 @@
 using Baytology.Infrastructure.Data.Seeders;
 using Baytology.Infrastructure.RealTime;
+using Microsoft.Extensions.FileProviders;
 
 using Microsoft.Extensions.Logging;
 
@@ -38,7 +39,18 @@ else
     app.UseHsts();
 }
 
+
 app.UseCoreMiddlewares(builder.Configuration);
+
+var imagesPath = Path.GetFullPath(Path.Combine(builder.Environment.ContentRootPath, "..", "..", "images"));
+if (Directory.Exists(imagesPath))
+{
+    app.UseStaticFiles(new StaticFileOptions
+    {
+        FileProvider = new PhysicalFileProvider(imagesPath),
+        RequestPath = "/images"
+    });
+}
 
 app.MapControllers();
 
