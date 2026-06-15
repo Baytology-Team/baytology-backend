@@ -46,6 +46,7 @@ build/
 *.out.log
 *.zip
 *.faiss
+*.docx
 
 # FAISS index (binary, regenerated)
 faiss_index.bin
