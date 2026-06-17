@@ -30,6 +30,7 @@ public class AppDbContext : IdentityDbContext<AppUser>, IAppDbContext
     public DbSet<SavedProperty> SavedProperties => Set<SavedProperty>();
     public DbSet<PropertyView> PropertyViews => Set<PropertyView>();
     public DbSet<AgentReview> AgentReviews => Set<AgentReview>();
+    public DbSet<UserPropertyPreference> UserPropertyPreferences => Set<UserPropertyPreference>();
 
     // Conversations
     public DbSet<Conversation> Conversations => Set<Conversation>();

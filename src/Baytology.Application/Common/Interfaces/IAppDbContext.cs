@@ -25,6 +25,7 @@ public interface IAppDbContext
     DbSet<PropertyView> PropertyViews { get; }
     DbSet<AgentReview> AgentReviews { get; }
     DbSet<AvailabilityRule> AvailabilityRules { get; }
+    DbSet<UserPropertyPreference> UserPropertyPreferences { get; }
 
     // Conversations
     DbSet<Conversation> Conversations { get; }
