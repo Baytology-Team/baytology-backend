@@ -56,10 +56,7 @@ public class UpdatePropertyCommandValidator : AbstractValidator<UpdatePropertyCo
         RuleFor(x => x)
             .Must(x => !x.Floor.HasValue || !x.TotalFloors.HasValue || x.Floor.Value <= x.TotalFloors.Value)
             .WithMessage("Floor cannot exceed total floors.");
-        RuleFor(x => x.Description).MaximumLength(5000).When(x => x.Description is not null)
-            .Must(description => string.IsNullOrWhiteSpace(description) || !ContainsHtmlTags(description))
-            .WithMessage("Description cannot contain HTML tags.")
-            .When(x => x.Description is not null);
+        RuleFor(x => x.Description).MaximumLength(5000).When(x => x.Description is not null);
         RuleFor(x => x.AddressLine).MaximumLength(500).When(x => x.AddressLine is not null);
         
         // Validate Egyptian cities

@@ -10,4 +10,5 @@ public record ConversationDto(
     string? PropertyTitle,
     DateTimeOffset CreatedOnUtc,
     DateTimeOffset LastMessageAt,
-    string? LastMessageContent);
+    string? LastMessageContent,
+    int UnreadCount = 0);

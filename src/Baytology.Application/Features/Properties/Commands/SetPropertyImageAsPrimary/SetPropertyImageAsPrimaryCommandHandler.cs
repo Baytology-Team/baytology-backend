@@ -1,6 +1,7 @@
 using Baytology.Application.Common.Interfaces;
 using Baytology.Domain.Common.Results;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace Baytology.Application.Features.Properties.Commands.SetPropertyImageAsPrimary;
 
@@ -9,7 +10,10 @@ public class SetPropertyImageAsPrimaryCommandHandler(IAppDbContext context)
 {
     public async Task<Result<Success>> Handle(SetPropertyImageAsPrimaryCommand request, CancellationToken ct)
     {
-        var property = await context.Properties.FindAsync([request.PropertyId], ct);
+        var property = await context.Properties
+            .Include(p => p.Images)
+            .FirstOrDefaultAsync(p => p.Id == request.PropertyId, ct);
+        
         if (property is null)
             return ApplicationErrors.Property.NotFound;
 

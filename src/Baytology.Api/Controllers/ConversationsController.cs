@@ -3,6 +3,7 @@ using System.Security.Claims;
 using Asp.Versioning;
 
 using Baytology.Application.Features.Conversations.Commands.CreateConversation;
+using Baytology.Application.Features.Conversations.Commands.MarkConversationAsRead;
 using Baytology.Application.Features.Conversations.Commands.MarkMessageRead;
 using Baytology.Application.Features.Conversations.Commands.SendMessage;
 using Baytology.Application.Features.Conversations.Dtos;
@@ -111,5 +112,21 @@ public class ConversationsController(ISender sender) : ApiController
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
         var result = await sender.Send(new MarkMessageReadCommand(messageId, userId), ct);
         return result.Match(_ => Ok(), Problem);
+    }
+
+    [HttpPatch("{conversationId:guid}/read")]
+    [EndpointSummary("Mark all messages in a conversation as read")]
+    [ProducesResponseType(typeof(int), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+    [EndpointDescription("Marks all unread messages in a conversation as read for the authenticated user.")]
+    [EndpointName("MarkConversationAsRead")]
+    [MapToApiVersion("1")]
+    public async Task<IActionResult> MarkConversationAsRead(Guid conversationId, CancellationToken ct)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+        var result = await sender.Send(new MarkConversationAsReadCommand(conversationId, userId), ct);
+        return result.Match(count => Ok(count), Problem);
     }
 }

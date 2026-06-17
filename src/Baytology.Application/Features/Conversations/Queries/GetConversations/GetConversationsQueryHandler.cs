@@ -27,7 +27,10 @@ public class GetConversationsQueryHandler(IAppDbContext context)
                     .Where(m => m.ConversationId == c.Id)
                     .OrderByDescending(m => m.SentAt)
                     .Select(m => m.Content)
-                    .FirstOrDefault()))
+                    .FirstOrDefault(),
+                context.Messages
+                    .Where(m => m.ConversationId == c.Id && !m.IsRead && m.SenderId != request.UserId)
+                    .Count()))
             .ToListAsync(ct);
 
         return conversations;
