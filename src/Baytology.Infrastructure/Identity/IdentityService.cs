@@ -498,7 +498,15 @@ public class IdentityService(
         if (tokens.Count > 0)
         {
             _dbContext.RefreshTokens.RemoveRange(tokens);
-            await _dbContext.SaveChangesAsync();
+            try
+            {
+                await _dbContext.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                // Tokens may have been deleted by another logout request
+                // Ignore and continue
+            }
         }
 
         return Result.Success;

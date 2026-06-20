@@ -8,5 +8,5 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Baytology.Application.Features.Conversations.Commands.SendMessage;
 
-public record SendMessageCommand(Guid ConversationId, string SenderId, string Content, string? AttachmentUrl)
+public record SendMessageCommand(Guid ConversationId, string SenderId, string Content, string? AttachmentUrl, Guid? PropertyId, string? AgentUserId)
     : IRequest<Result<Guid>>;

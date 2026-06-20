@@ -149,6 +149,6 @@ public sealed class PropertyTests
 
         Assert.True(result.IsSuccess);
         Assert.True(image1.IsPrimary);
-        Assert.Equal(1, property.Images.Count);
+        Assert.Single(property.Images);
     }
 }

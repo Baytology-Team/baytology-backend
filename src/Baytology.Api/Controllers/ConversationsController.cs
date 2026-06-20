@@ -88,13 +88,13 @@ public class ConversationsController(ISender sender) : ApiController
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-    [EndpointDescription("Sends a message to the other participant in the conversation. The sender must be a participant.")]
+    [EndpointDescription("Sends a message to the other participant in the conversation. The sender must be a participant. If conversation does not exist and PropertyId/AgentUserId are provided, it will be auto-created.")]
     [EndpointName("SendMessage")]
     [MapToApiVersion("1")]
     public async Task<IActionResult> SendMessage(Guid conversationId, [FromBody] SendMessageRequest request, CancellationToken ct)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-        var result = await sender.Send(new SendMessageCommand(conversationId, userId, request.Content, request.AttachmentUrl), ct);
+        var result = await sender.Send(new SendMessageCommand(conversationId, userId, request.Content, request.AttachmentUrl, request.PropertyId, request.AgentUserId), ct);
         return result.Match(id => Ok(new SendMessageResponse(id)), Problem);
     }
 

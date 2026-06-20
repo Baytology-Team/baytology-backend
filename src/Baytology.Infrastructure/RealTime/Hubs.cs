@@ -45,7 +45,7 @@ public class ChatHub(ISender sender, IAppDbContext context) : Hub
         var userId = GetCurrentUserId();
 
         var result = await sender.Send(
-            new SendMessageCommand(conversationGuid, userId, content, attachmentUrl),
+            new SendMessageCommand(conversationGuid, userId, content, attachmentUrl, null, null),
             Context.ConnectionAborted);
 
         if (result.IsError)

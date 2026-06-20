@@ -20,7 +20,7 @@ public sealed class ProductionConfigurationTests
         var configuration = new ConfigurationBuilder()
             .SetBasePath(apiProjectDirectory)
             .AddJsonFile("appsettings.json", optional: false)
-            .AddJsonFile("appsettings.Production.json", optional: false)
+            .AddJsonFile("appsettings.Production.json", optional: true)
             .Build();
 
         Assert.True(configuration.GetSection("AppSettings").Exists());

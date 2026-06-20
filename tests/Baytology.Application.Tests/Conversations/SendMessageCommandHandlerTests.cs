@@ -19,7 +19,7 @@ public sealed class SendMessageCommandHandlerTests
         var initialLastMessageAt = conversation.LastMessageAt;
         await Task.Delay(10);
 
-        var command = new SendMessageCommand(conversation.Id, "buyer-1", "Is this available?", null);
+        var command = new SendMessageCommand(conversation.Id, "buyer-1", "Is this available?", null, null, null);
         var result = await handler.Handle(command, CancellationToken.None);
 
         Assert.True(result.IsSuccess);
@@ -37,7 +37,7 @@ public sealed class SendMessageCommandHandlerTests
         await using var context = TestDbContextFactory.Create();
         var handler = new SendMessageCommandHandler(context);
 
-        var command = new SendMessageCommand(Guid.NewGuid(), "buyer-1", "Hello", null);
+        var command = new SendMessageCommand(Guid.NewGuid(), "buyer-1", "Hello", null, null, null);
         var result = await handler.Handle(command, CancellationToken.None);
 
         Assert.True(result.IsError);
@@ -54,7 +54,7 @@ public sealed class SendMessageCommandHandlerTests
         context.Conversations.Add(conversation);
         await context.SaveChangesAsync();
 
-        var command = new SendMessageCommand(conversation.Id, "stranger-1", "Hi", null);
+        var command = new SendMessageCommand(conversation.Id, "stranger-1", "Hi", null, null, null);
         var result = await handler.Handle(command, CancellationToken.None);
 
         Assert.True(result.IsError);

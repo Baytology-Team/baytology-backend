@@ -28,7 +28,7 @@ public class GetAgentPropertiesQueryHandler(IAppDbContext context)
                 x.prop.Area,
                 x.prop.Bedrooms,
                 x.prop.Bathrooms,
-                x.prop.City,
+                x.prop.City ?? string.Empty,
                 x.prop.District,
                 x.prop.Images.FirstOrDefault() != null ? x.prop.Images.First().Url : null,
                 x.reviews.Any() ? (decimal?)x.reviews.Average(r => r.Rating) : null,
